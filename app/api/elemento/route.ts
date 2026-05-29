@@ -19,36 +19,33 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Partida não encontrada' }, { status: 404 })
   }
 
-  // Determina qual campo atualizar e valida o jogador
-  let updateField: 'id_elemento1' | 'id_elemento2' | null = null
+  if (partida.status !== 'em_andamento') {
+    return NextResponse.json({ error: 'Fora do momento de escolha' }, { status: 409 })
+  }
+
+  // Identifica qual campo salvar e valida se já escolheu
+  let updateField: 'id_elemento1' | 'id_elemento2'
+  let outroElemento: number | null
 
   if (partida.id_jogador1 === idJogador) {
-    if (partida.id_elemento1) {
-      return NextResponse.json({ error: 'Você já escolheu seu elemento' }, { status: 409 })
-    }
+    if (partida.id_elemento1) return NextResponse.json({ error: 'Você já escolheu seu elemento' }, { status: 409 })
     updateField = 'id_elemento1'
+    outroElemento = partida.id_elemento2
   } else if (partida.id_jogador2 === idJogador) {
-    if (partida.id_elemento2) {
-      return NextResponse.json({ error: 'Você já escolheu seu elemento' }, { status: 409 })
-    }
+    if (partida.id_elemento2) return NextResponse.json({ error: 'Você já escolheu seu elemento' }, { status: 409 })
     updateField = 'id_elemento2'
+    outroElemento = partida.id_elemento1
   } else {
     return NextResponse.json({ error: 'Jogador não pertence a esta partida' }, { status: 403 })
   }
 
-  // Aceita tanto em_andamento quanto adivinhando (caso o outro jogador já tenha avançado o status)
-  if (partida.status !== 'em_andamento' && partida.status !== 'adivinhando') {
-    return NextResponse.json({ error: 'Fora do momento de escolha' }, { status: 409 })
-  }
+  // Monta o update
+  const updateData: Record<string, unknown> = { [updateField]: idElemento }
 
-  const updateData: Record<string, number | string> = { [updateField]: idElemento }
-
-  // O elemento do adversário já estava salvo antes deste update?
-  const outroElemento = updateField === 'id_elemento1' ? partida.id_elemento2 : partida.id_elemento1
+  // Se o adversário já escolheu, ambos estão prontos — inicia fase de palpites
   if (outroElemento !== null && outroElemento !== undefined) {
-    // Ambos escolheram — avança para adivinhação, jogador1 começa
     updateData.status = 'adivinhando'
-    updateData.vez_de = partida.id_jogador1
+    updateData.vez_de = partida.id_jogador1  // jogador1 sempre começa
   }
 
   const { error: updateError } = await supabase
@@ -60,5 +57,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: updateError.message }, { status: 500 })
   }
 
-  return NextResponse.json({ success: true, campo: updateField, status: updateData.status ?? 'em_andamento' })
+  return NextResponse.json({ success: true, status: updateData.status ?? 'em_andamento' })
 }

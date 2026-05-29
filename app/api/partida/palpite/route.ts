@@ -30,33 +30,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Jogador não pertence a esta partida' }, { status: 403 })
   }
 
-  // Verifica se é a vez deste jogador
   if (partida.vez_de !== idJogador) {
     return NextResponse.json({ error: 'Não é a sua vez' }, { status: 409 })
   }
 
-  // Jogador1 adivinha id_elemento2, jogador2 adivinha id_elemento1
+  // Cada jogador adivinha o elemento do adversário
   const elementoAlvo = ehJogador1 ? partida.id_elemento2 : partida.id_elemento1
   const acertou = Number(idPalpite) === Number(elementoAlvo)
 
-  const palpiteField = ehJogador1 ? 'palpite1' : 'palpite2'
-  const acertouField = ehJogador1 ? 'acertou1' : 'acertou2'
-
-  const updateData: Record<string, number | string | boolean | null> = {
-    [palpiteField]: idPalpite,
-    [acertouField]: acertou,
+  const updateData: Record<string, unknown> = {
+    [ehJogador1 ? 'palpite1' : 'palpite2']: idPalpite,
+    [ehJogador1 ? 'acertou1' : 'acertou2']: acertou,
   }
 
   if (acertou) {
-    // Acertou — finaliza a partida, este jogador venceu
     updateData.status = 'finalizada'
     updateData.vencedor = idJogador
   } else {
-    // Errou — passa a vez para o adversário
-    const adversario = ehJogador1 ? partida.id_jogador2 : partida.id_jogador1
-    updateData.vez_de = adversario
-    // Limpa o palpite anterior para o próximo turno (campo reaproveitado)
-    updateData[palpiteField] = idPalpite   // mantém o último palpite para referência
+    // Passa a vez para o adversário
+    updateData.vez_de = ehJogador1 ? partida.id_jogador2 : partida.id_jogador1
   }
 
   const { error: updateError } = await supabase
@@ -68,10 +60,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: updateError.message }, { status: 500 })
   }
 
-  return NextResponse.json({
-    success: true,
-    acertou,
-    status: updateData.status ?? 'adivinhando',
-    vezDe: updateData.vez_de ?? idJogador,
-  })
+  return NextResponse.json({ success: true, acertou, status: updateData.status ?? 'adivinhando' })
 }

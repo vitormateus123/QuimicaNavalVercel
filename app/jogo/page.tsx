@@ -31,13 +31,14 @@ interface EstadoPartida {
 
 export default function JogoPage() {
   const router = useRouter();
-  const [selecionado, setSelecionado] = useState<HTMLElement | null>(null);
+  // Seleção atual na tabela
+  const [selecionadoEl, setSelecionadoEl] = useState<HTMLElement | null>(null);
   const [selecionadoId, setSelecionadoId] = useState<string | null>(null);
-  const [elementoConfirmado, setElementoConfirmado] = useState(false);
-  const [ultimoPalpite, setUltimoPalpite] = useState<{id: string, acertou: boolean} | null>(null);
+  // Estado vindo do servidor — fonte única de verdade
   const [estado, setEstado] = useState<EstadoPartida | null>(null);
-  const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  // UI
   const [periodInput, setPeriodInput] = useState("");
   const [groupInput, setGroupInput] = useState("");
   const [valenceInput, setValenceInput] = useState("");
@@ -46,8 +47,9 @@ export default function JogoPage() {
   const [dicaVisivel, setDicaVisivel] = useState<number>(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Lê IDs da sessão uma vez
   const idJogador = typeof window !== "undefined" ? Number(sessionStorage.getItem("idJogador")) : 0;
-  const idJogada = typeof window !== "undefined" ? Number(sessionStorage.getItem("idJogada")) : 0;
+  const idJogada  = typeof window !== "undefined" ? Number(sessionStorage.getItem("idJogada"))  : 0;
 
   const carregarEstado = useCallback(async () => {
     if (!idJogada) return;
@@ -55,24 +57,7 @@ export default function JogoPage() {
     if (!res.ok) return;
     const data: EstadoPartida = await res.json();
     setEstado(data);
-
-    if (data.id_jogador1 === idJogador && data.id_elemento1) setElementoConfirmado(true);
-    if (data.id_jogador2 === idJogador && data.id_elemento2) setElementoConfirmado(true);
-
-    if (data.status === "aguardando") {
-      setMensagem("⏳ Aguardando segundo jogador entrar na sala...");
-    } else if (data.status === "em_andamento") {
-      const euJogador1 = data.id_jogador1 === idJogador;
-      const meuElemento = euJogador1 ? data.id_elemento1 : data.id_elemento2;
-      const outroElemento = euJogador1 ? data.id_elemento2 : data.id_elemento1;
-      if (!meuElemento) setMensagem("🎯 Escolha seu elemento secreto na tabela periódica!");
-      else if (!outroElemento) setMensagem("⏳ Aguardando o adversário escolher o elemento...");
-    } else if (data.status === "adivinhando") {
-      const minhaVez = data.vez_de === idJogador;
-      if (minhaVez) setMensagem("🔍 É sua vez! Use as dicas para adivinhar o elemento do adversário.");
-      else setMensagem("⏳ Aguardando o adversário fazer o palpite...");
-    }
-  }, [idJogada, idJogador]);
+  }, [idJogada]);
 
   useEffect(() => {
     if (!sessionStorage.getItem("idJogador") || !sessionStorage.getItem("idJogada")) {
@@ -84,58 +69,100 @@ export default function JogoPage() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [carregarEstado, router]);
 
-  function alternarSelecao(el: HTMLElement, id: string) {
-    if (selecionado) selecionado.classList.remove("destaque");
-    if (selecionado === el) { setSelecionado(null); setSelecionadoId(null); return; }
+  // ── Derivações do estado do servidor ──────────────────────────────────────
+  const euJogador1     = estado?.id_jogador1 === idJogador;
+  const meuElementoId  = estado ? (euJogador1 ? estado.id_elemento1 : estado.id_elemento2) : null;
+  const meuElemento    = estado ? (euJogador1 ? estado.elemento1    : estado.elemento2)    : null;
+  const dicasAdversario = estado
+    ? (euJogador1 ? estado.dicas_elemento2?.dica : estado.dicas_elemento1?.dica) ?? []
+    : [];
+  const meuAcerto    = estado ? (euJogador1 ? estado.acertou1 : estado.acertou2) : null;
+  const outroAcerto  = estado ? (euJogador1 ? estado.acertou2 : estado.acertou1) : null;
+  const finalizada   = estado?.status === "finalizada";
+  const adivinhando  = estado?.status === "adivinhando";
+  const emAndamento  = estado?.status === "em_andamento";
+  const jaEscolheu   = meuElementoId !== null && meuElementoId !== undefined;
+  const minhaVez     = adivinhando && estado?.vez_de === idJogador;
+
+  // Mensagem de status
+  let mensagem = "";
+  if (estado?.status === "aguardando") {
+    mensagem = "⏳ Aguardando segundo jogador entrar na sala...";
+  } else if (emAndamento) {
+    if (!jaEscolheu) mensagem = "🎯 Escolha seu elemento secreto na tabela periódica!";
+    else mensagem = "⏳ Aguardando o adversário escolher o elemento...";
+  } else if (adivinhando) {
+    if (minhaVez) mensagem = "🔍 É sua vez! Selecione um elemento e envie seu palpite.";
+    else mensagem = "⏳ Vez do adversário...";
+  }
+
+  // ── Interação com a tabela ─────────────────────────────────────────────────
+  function handleCelulaClick(el: HTMLElement, id: string) {
+    // Só permite clique se for uma fase em que o jogador precisa agir
+    const podeAgir = (emAndamento && !jaEscolheu) || minhaVez;
+    if (!podeAgir || finalizada) return;
+
+    // Toggle: clicou de novo no mesmo → deseleciona
+    if (selecionadoEl === el) {
+      el.classList.remove("destaque");
+      setSelecionadoEl(null);
+      setSelecionadoId(null);
+      return;
+    }
+    if (selecionadoEl) selecionadoEl.classList.remove("destaque");
     el.classList.add("destaque");
-    setSelecionado(el);
+    setSelecionadoEl(el);
     setSelecionadoId(id);
   }
 
+  function limparSelecao() {
+    if (selecionadoEl) selecionadoEl.classList.remove("destaque");
+    setSelecionadoEl(null);
+    setSelecionadoId(null);
+  }
+
+  // ── Confirmar elemento secreto ─────────────────────────────────────────────
   async function confirmarSelecao() {
-    if (!selecionadoId || elementoConfirmado) return;
+    if (!selecionadoId || jaEscolheu || enviando) return;
     setErro("");
+    setEnviando(true);
     const res = await fetch("/api/elemento", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idJogador, idJogada, idElemento: Number(selecionadoId) }),
     });
     const data = await res.json();
+    setEnviando(false);
     if (!res.ok) { setErro(data.error); return; }
-    if (selecionado) { selecionado.classList.remove("destaque"); selecionado.classList.add("finalSelection"); }
-    setElementoConfirmado(true);
-    setMensagem("✅ Elemento escolhido! Aguardando adversário...");
+    if (selecionadoEl) {
+      selecionadoEl.classList.remove("destaque");
+      selecionadoEl.classList.add("finalSelection");
+    }
+    setSelecionadoEl(null);
+    setSelecionadoId(null);
     await carregarEstado();
   }
 
+  // ── Enviar palpite ─────────────────────────────────────────────────────────
   async function confirmarPalpite() {
-    if (!selecionadoId) return;
+    if (!selecionadoId || !minhaVez || enviando) return;
     setErro("");
+    setEnviando(true);
     const res = await fetch("/api/partida/palpite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idJogador, idJogada, idPalpite: Number(selecionadoId) }),
     });
     const data = await res.json();
+    setEnviando(false);
     if (!res.ok) { setErro(data.error); return; }
-    if (selecionado) { selecionado.classList.remove("destaque"); }
-    setSelecionado(null);
+    if (selecionadoEl) selecionadoEl.classList.remove("destaque");
+    setSelecionadoEl(null);
     setSelecionadoId(null);
-    setUltimoPalpite({ id: selecionadoId, acertou: data.acertou });
-    if (data.acertou) {
-      setMensagem("🎉 Você acertou! Aguardando confirmação...");
-    } else {
-      setMensagem("❌ Errou! Vez do adversário...");
-    }
     await carregarEstado();
   }
 
-  function limparSelecao() {
-    if (selecionado) selecionado.classList.remove("destaque");
-    setSelecionado(null);
-    setSelecionadoId(null);
-  }
-
+  // ── Busca na tabela ────────────────────────────────────────────────────────
   function buscarElemento() {
     const period = periodInput.trim().toLowerCase();
     let group = groupInput.trim().toLowerCase();
@@ -157,27 +184,7 @@ export default function JogoPage() {
     }
   }
 
-  const euJogador1 = estado?.id_jogador1 === idJogador;
-  const meuElemento = estado ? (euJogador1 ? estado.elemento1 : estado.elemento2) : null;
-  const dicasAdversario = estado
-    ? (euJogador1 ? estado.dicas_elemento2?.dica : estado.dicas_elemento1?.dica) ?? []
-    : [];
-  const meuPalpite = estado ? (euJogador1 ? estado.palpite1 : estado.palpite2) : null;
-  const meuAcerto = estado ? (euJogador1 ? estado.acertou1 : estado.acertou2) : null;
-  const outroAcerto = estado ? (euJogador1 ? estado.acertou2 : estado.acertou1) : null;
-  const finalizada = estado?.status === "finalizada";
-  const adivinhando = estado?.status === "adivinhando";
-  const minhaVez = adivinhando && estado?.vez_de === idJogador;
-  const tabelaAtiva = !elementoConfirmado || minhaVez;
-
-  // Ação do botão da tabela depende da fase
-  function handleCelulaClick(el: HTMLElement, id: string) {
-    if (estado?.status === "aguardando") return;
-    if (estado?.status === "em_andamento" && elementoConfirmado) return;
-    if (estado?.status === "adivinhando" && !minhaVez) return;
-    if (finalizada) return;
-    alternarSelecao(el, id);
-  }
+  const tabelaAtiva = (emAndamento && !jaEscolheu) || minhaVez;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -203,7 +210,6 @@ export default function JogoPage() {
           {estado.vencedor === idJogador && <p className="text-green-600 font-bold text-xl mb-3">🎉 Você venceu!</p>}
           {estado.vencedor !== null && estado.vencedor !== idJogador && <p className="text-red-500 font-bold text-xl mb-3">😔 Você perdeu.</p>}
           {estado.vencedor === null && <p className="text-gray-600 font-bold text-xl mb-3">🤝 Empate!</p>}
-
           <div className="flex justify-center gap-8 flex-wrap mb-4">
             <div className="bg-white rounded-xl p-4 shadow min-w-[180px]">
               <p className="font-semibold text-blue-700 mb-1">{estado.jogador1?.nome}</p>
@@ -281,7 +287,7 @@ export default function JogoPage() {
         </table>
       </div>
 
-      {/* Barra de ação — muda conforme a fase */}
+      {/* Barra de ação */}
       {!finalizada && (
         <div className="px-4 pb-2 flex flex-col items-center gap-2">
           <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 w-full max-w-3xl flex items-center justify-between gap-4">
@@ -300,18 +306,18 @@ export default function JogoPage() {
               {adivinhando ? (
                 <button
                   onClick={confirmarPalpite}
-                  disabled={!selecionadoId || !minhaVez}
+                  disabled={!selecionadoId || !minhaVez || enviando}
                   className="bg-purple-600 text-white px-4 py-1 rounded text-sm hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {!minhaVez ? "⏳ Vez do adversário" : "Enviar Palpite"}
+                  {enviando ? "Enviando..." : !minhaVez ? "⏳ Vez do adversário" : "Enviar Palpite"}
                 </button>
               ) : (
                 <button
                   onClick={confirmarSelecao}
-                  disabled={!selecionadoId || elementoConfirmado || estado?.status === "aguardando"}
+                  disabled={!selecionadoId || jaEscolheu || !emAndamento || enviando}
                   className="bg-green-600 text-white px-4 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {elementoConfirmado ? "✅ Confirmado" : "Confirmar Seleção"}
+                  {enviando ? "Confirmando..." : jaEscolheu ? "✅ Elemento Confirmado" : "Confirmar Seleção"}
                 </button>
               )}
             </div>
@@ -341,11 +347,11 @@ export default function JogoPage() {
           {searchErro && <p className="text-red-600 text-xs mt-2">{searchErro}</p>}
         </div>
 
-        {/* Painel direito: status ou dicas */}
+        {/* Painel direito */}
         <div className="bg-amber-50 rounded-xl p-4 flex-1 max-w-lg shadow">
 
           {/* Fase de escolha */}
-          {(estado?.status === "aguardando" || estado?.status === "em_andamento") && (
+          {(estado?.status === "aguardando" || emAndamento) && (
             <>
               <h2 className="text-center font-semibold text-lg mb-3">Status da Partida</h2>
               <div style={{ background: "rgb(228,209,187)", borderRadius: "7px", padding: "12px", minHeight: "120px" }}>
@@ -400,7 +406,7 @@ export default function JogoPage() {
                   </div>
                 )}
 
-                {/* Dicas do adversário reveladas uma a uma */}
+                {/* Dicas reveladas uma a uma */}
                 <p className="text-xs font-semibold text-gray-700 mb-2">
                   Dicas do elemento adversário ({dicaVisivel + 1}/{Math.max(dicasAdversario.length, 1)}):
                 </p>
@@ -413,7 +419,7 @@ export default function JogoPage() {
                         </div>
                       ))}
                     </div>
-                    {adivinhando && !minhaVez && dicaVisivel < dicasAdversario.length - 1 && (
+                    {adivinhando && dicaVisivel < dicasAdversario.length - 1 && (
                       <button
                         onClick={() => setDicaVisivel(v => v + 1)}
                         className="w-full bg-amber-500 text-white py-1.5 rounded text-sm hover:bg-amber-600 mb-2"
@@ -426,7 +432,7 @@ export default function JogoPage() {
                   <p className="text-gray-500 text-sm">Carregando dicas...</p>
                 )}
 
-                {/* Status do palpite */}
+                {/* Turno */}
                 {adivinhando && (
                   <div className="mt-3 pt-3 border-t border-amber-400">
                     <p className="text-xs font-semibold text-center mb-2 text-gray-600">Turno atual:</p>
@@ -434,24 +440,19 @@ export default function JogoPage() {
                       <div>
                         <p className="text-xs font-semibold text-blue-700">{estado?.jogador1?.nome}</p>
                         <p className="text-xl mt-1">{estado?.vez_de === estado?.id_jogador1 ? "🎯" : "⏳"}</p>
-                        <p className="text-xs text-gray-500">{estado?.vez_de === estado?.id_jogador1 ? "Sua vez!" : "Aguardando..."}</p>
+                        <p className="text-xs text-gray-500">{estado?.vez_de === estado?.id_jogador1 ? "Vez dele!" : "Aguardando..."}</p>
                       </div>
                       <div className="flex items-center text-gray-400 font-bold text-sm">VS</div>
                       <div>
                         <p className="text-xs font-semibold text-green-700">{estado?.jogador2?.nome}</p>
                         <p className="text-xl mt-1">{estado?.vez_de === estado?.id_jogador2 ? "🎯" : "⏳"}</p>
-                        <p className="text-xs text-gray-500">{estado?.vez_de === estado?.id_jogador2 ? "Sua vez!" : "Aguardando..."}</p>
+                        <p className="text-xs text-gray-500">{estado?.vez_de === estado?.id_jogador2 ? "Vez dele!" : "Aguardando..."}</p>
                       </div>
                     </div>
-                    {ultimoPalpite && (
-                      <p className={`text-center text-sm mt-2 font-medium ${ultimoPalpite.acertou ? "text-green-600" : "text-red-500"}`}>
-                        {ultimoPalpite.acertou ? "🎉 Você acertou!" : `❌ Errou. Elemento #${ultimoPalpite.id} não é o certo.`}
-                      </p>
-                    )}
                   </div>
                 )}
 
-                {/* Resultado parcial imediato (após finalização) */}
+                {/* Resultado parcial */}
                 {finalizada && (
                   <div className="mt-3 pt-3 border-t border-amber-400 text-center">
                     <p className={`font-bold text-lg ${meuAcerto ? "text-green-600" : "text-red-500"}`}>
