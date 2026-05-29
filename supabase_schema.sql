@@ -25,17 +25,31 @@ CREATE TABLE IF NOT EXISTS jogador (
 );
 
 -- Tabela de jogadas (partidas)
+-- status: aguardando → em_andamento → adivinhando → finalizada
+-- vez_de: id do jogador que deve palpitar agora (turnos alternados)
+-- palpite1/2: último palpite enviado por cada jogador (pode ser sobrescrito a cada rodada)
+-- acertou1/2: se o último palpite foi correto (true = acertou e encerrou)
 CREATE TABLE IF NOT EXISTS jogada (
   id_jogada    SERIAL PRIMARY KEY,
   id_jogador1  INTEGER NOT NULL REFERENCES jogador(id_jogador),
   id_jogador2  INTEGER          REFERENCES jogador(id_jogador),
   id_elemento1 INTEGER          REFERENCES elemento(id_elemento),
   id_elemento2 INTEGER          REFERENCES elemento(id_elemento),
+  palpite1     INTEGER          REFERENCES elemento(id_elemento),
+  palpite2     INTEGER          REFERENCES elemento(id_elemento),
+  acertou1     BOOLEAN          DEFAULT NULL,
+  acertou2     BOOLEAN          DEFAULT NULL,
+  vez_de       INTEGER          REFERENCES jogador(id_jogador),
   status       VARCHAR(20) NOT NULL DEFAULT 'aguardando'
-               CHECK (status IN ('aguardando', 'em_andamento', 'finalizada')),
+               CHECK (status IN ('aguardando', 'em_andamento', 'adivinhando', 'finalizada')),
   vencedor     INTEGER          REFERENCES jogador(id_jogador),
   criado_em    TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- ============================================================
+-- Se estiver ATUALIZANDO um banco já existente (sem recriar):
+-- ALTER TABLE jogada ADD COLUMN IF NOT EXISTS vez_de INTEGER REFERENCES jogador(id_jogador);
+-- ============================================================
 
 -- ============================================================
 -- Habilitar Row Level Security (RLS)

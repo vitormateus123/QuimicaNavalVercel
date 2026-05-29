@@ -9,7 +9,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Dados incompletos' }, { status: 400 })
   }
 
-  // Verificar partida e papel do jogador
   const { data: partida, error: fetchError } = await supabase
     .from('jogada')
     .select('id_jogador1, id_jogador2, id_elemento1, id_elemento2, status')
@@ -20,8 +19,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Partida não encontrada' }, { status: 404 })
   }
 
-  if (partida.status === 'finalizada') {
-    return NextResponse.json({ error: 'Partida já finalizada' }, { status: 409 })
+  if (partida.status !== 'em_andamento') {
+    return NextResponse.json({ error: 'Fora do momento de escolha' }, { status: 409 })
   }
 
   let updateField: 'id_elemento1' | 'id_elemento2' | null = null
@@ -38,14 +37,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Jogador não pertence a esta partida' }, { status: 403 })
   }
 
-  // Salvar elemento
   const updateData: Record<string, number | string> = { [updateField]: idElemento }
 
-  // Verificar se com esta atualização ambos escolheram
+  // Quando ambos escolheram, avança para fase de adivinhação
+  // O jogador1 começa (assim como no Batalha Naval, quem criou a sala vai primeiro)
   const outroElemento = updateField === 'id_elemento1' ? partida.id_elemento2 : partida.id_elemento1
-
   if (outroElemento) {
-    updateData.status = 'finalizada'
+    updateData.status = 'adivinhando'
+    updateData.vez_de = partida.id_jogador1 // Jogador1 sempre começa
   }
 
   const { error: updateError } = await supabase

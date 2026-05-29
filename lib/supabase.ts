@@ -20,7 +20,11 @@ export type Database = {
           id_jogador2: number | null
           id_elemento1: number | null
           id_elemento2: number | null
-          status: 'aguardando' | 'em_andamento' | 'finalizada'
+          palpite1: number | null
+          palpite2: number | null
+          acertou1: boolean | null
+          acertou2: boolean | null
+          status: 'aguardando' | 'em_andamento' | 'adivinhando' | 'finalizada'
           vencedor: number | null
           criado_em: string
         }
@@ -29,45 +33,33 @@ export type Database = {
           id_jogador2?: number | null
           id_elemento1?: number | null
           id_elemento2?: number | null
-          status?: 'aguardando' | 'em_andamento' | 'finalizada'
+          palpite1?: number | null
+          palpite2?: number | null
+          acertou1?: boolean | null
+          acertou2?: boolean | null
+          status?: 'aguardando' | 'em_andamento' | 'adivinhando' | 'finalizada'
         }
         Update: {
           id_jogador2?: number | null
           id_elemento1?: number | null
           id_elemento2?: number | null
-          status?: 'aguardando' | 'em_andamento' | 'finalizada'
+          palpite1?: number | null
+          palpite2?: number | null
+          acertou1?: boolean | null
+          acertou2?: boolean | null
+          status?: 'aguardando' | 'em_andamento' | 'adivinhando' | 'finalizada'
           vencedor?: number | null
         }
       }
       elemento: {
-        Row: {
-          id_elemento: number
-          nome: string
-          familia: string
-        }
-        Insert: {
-          nome: string
-          familia: string
-        }
-        Update: {
-          nome?: string
-          familia?: string
-        }
+        Row: { id_elemento: number; nome: string; familia: string }
+        Insert: { nome: string; familia: string }
+        Update: { nome?: string; familia?: string }
       }
       dica: {
-        Row: {
-          id_dica: number
-          id_elemento: number
-          descricao: string
-        }
-        Insert: {
-          id_elemento: number
-          descricao: string
-        }
-        Update: {
-          id_elemento?: number
-          descricao?: string
-        }
+        Row: { id_dica: number; id_elemento: number; descricao: string }
+        Insert: { id_elemento: number; descricao: string }
+        Update: { id_elemento?: number; descricao?: string }
       }
     }
   }

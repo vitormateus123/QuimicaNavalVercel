@@ -15,10 +15,18 @@ interface EstadoPartida {
   id_jogador2: number | null;
   id_elemento1: number | null;
   id_elemento2: number | null;
+  palpite1: number | null;
+  palpite2: number | null;
+  acertou1: boolean | null;
+  acertou2: boolean | null;
+  vencedor: number | null;
+  vez_de: number | null;
   jogador1: { nome: string } | null;
   jogador2: { nome: string } | null;
   elemento1: { id_elemento: number; nome: string; familia: string } | null;
   elemento2: { id_elemento: number; nome: string; familia: string } | null;
+  dicas_elemento1: { dica: { descricao: string }[] } | null;
+  dicas_elemento2: { dica: { descricao: string }[] } | null;
 }
 
 export default function JogoPage() {
@@ -26,6 +34,7 @@ export default function JogoPage() {
   const [selecionado, setSelecionado] = useState<HTMLElement | null>(null);
   const [selecionadoId, setSelecionadoId] = useState<string | null>(null);
   const [elementoConfirmado, setElementoConfirmado] = useState(false);
+  const [ultimoPalpite, setUltimoPalpite] = useState<{id: string, acertou: boolean} | null>(null);
   const [estado, setEstado] = useState<EstadoPartida | null>(null);
   const [mensagem, setMensagem] = useState("");
   const [erro, setErro] = useState("");
@@ -34,7 +43,7 @@ export default function JogoPage() {
   const [valenceInput, setValenceInput] = useState("");
   const [searchErro, setSearchErro] = useState("");
   const [highlightId, setHighlightId] = useState<string | null>(null);
-  const [meuTurnoConfirmado, setMeuTurnoConfirmado] = useState(false);
+  const [dicaVisivel, setDicaVisivel] = useState<number>(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const idJogador = typeof window !== "undefined" ? Number(sessionStorage.getItem("idJogador")) : 0;
@@ -47,22 +56,21 @@ export default function JogoPage() {
     const data: EstadoPartida = await res.json();
     setEstado(data);
 
-    // Verificar se já confirmou elemento
     if (data.id_jogador1 === idJogador && data.id_elemento1) setElementoConfirmado(true);
     if (data.id_jogador2 === idJogador && data.id_elemento2) setElementoConfirmado(true);
 
-    // Atualizar mensagem de status
     if (data.status === "aguardando") {
       setMensagem("⏳ Aguardando segundo jogador entrar na sala...");
     } else if (data.status === "em_andamento") {
       const euJogador1 = data.id_jogador1 === idJogador;
       const meuElemento = euJogador1 ? data.id_elemento1 : data.id_elemento2;
       const outroElemento = euJogador1 ? data.id_elemento2 : data.id_elemento1;
-      if (!meuElemento) {
-        setMensagem("🎯 Escolha seu elemento na tabela periódica!");
-      } else if (!outroElemento) {
-        setMensagem("⏳ Aguardando o adversário escolher o elemento...");
-      }
+      if (!meuElemento) setMensagem("🎯 Escolha seu elemento secreto na tabela periódica!");
+      else if (!outroElemento) setMensagem("⏳ Aguardando o adversário escolher o elemento...");
+    } else if (data.status === "adivinhando") {
+      const minhaVez = data.vez_de === idJogador;
+      if (minhaVez) setMensagem("🔍 É sua vez! Use as dicas para adivinhar o elemento do adversário.");
+      else setMensagem("⏳ Aguardando o adversário fazer o palpite...");
     }
   }, [idJogada, idJogador]);
 
@@ -77,13 +85,8 @@ export default function JogoPage() {
   }, [carregarEstado, router]);
 
   function alternarSelecao(el: HTMLElement, id: string) {
-    if (elementoConfirmado) return;
     if (selecionado) selecionado.classList.remove("destaque");
-    if (selecionado === el) {
-      setSelecionado(null);
-      setSelecionadoId(null);
-      return;
-    }
+    if (selecionado === el) { setSelecionado(null); setSelecionadoId(null); return; }
     el.classList.add("destaque");
     setSelecionado(el);
     setSelecionadoId(id);
@@ -92,29 +95,38 @@ export default function JogoPage() {
   async function confirmarSelecao() {
     if (!selecionadoId || elementoConfirmado) return;
     setErro("");
-
     const res = await fetch("/api/elemento", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        idJogador,
-        idJogada,
-        idElemento: Number(selecionadoId),
-      }),
+      body: JSON.stringify({ idJogador, idJogada, idElemento: Number(selecionadoId) }),
     });
-
     const data = await res.json();
-    if (!res.ok) {
-      setErro(data.error);
-      return;
-    }
-
-    if (selecionado) {
-      selecionado.classList.remove("destaque");
-      selecionado.classList.add("finalSelection");
-    }
+    if (!res.ok) { setErro(data.error); return; }
+    if (selecionado) { selecionado.classList.remove("destaque"); selecionado.classList.add("finalSelection"); }
     setElementoConfirmado(true);
     setMensagem("✅ Elemento escolhido! Aguardando adversário...");
+    await carregarEstado();
+  }
+
+  async function confirmarPalpite() {
+    if (!selecionadoId) return;
+    setErro("");
+    const res = await fetch("/api/partida/palpite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idJogador, idJogada, idPalpite: Number(selecionadoId) }),
+    });
+    const data = await res.json();
+    if (!res.ok) { setErro(data.error); return; }
+    if (selecionado) { selecionado.classList.remove("destaque"); }
+    setSelecionado(null);
+    setSelecionadoId(null);
+    setUltimoPalpite({ id: selecionadoId, acertou: data.acertou });
+    if (data.acertou) {
+      setMensagem("🎉 Você acertou! Aguardando confirmação...");
+    } else {
+      setMensagem("❌ Errou! Vez do adversário...");
+    }
     await carregarEstado();
   }
 
@@ -128,22 +140,13 @@ export default function JogoPage() {
     const period = periodInput.trim().toLowerCase();
     let group = groupInput.trim().toLowerCase();
     const valence = valenceInput.trim().toLowerCase();
-
-    if (!period && !group && !valence) {
-      setSearchErro("Os campos não podem estar vazios.");
-      return;
-    }
-    if ((period && !group) || (!period && group)) {
-      setSearchErro("Período e grupo devem ser preenchidos juntos.");
-      return;
-    }
+    if (!period && !group && !valence) { setSearchErro("Os campos não podem estar vazios."); return; }
+    if ((period && !group) || (!period && group)) { setSearchErro("Período e grupo devem ser preenchidos juntos."); return; }
     setSearchErro("");
     group = GROUP_MAP[group] || group;
-
     const el = valence
       ? document.querySelector<HTMLElement>(`[data-valence='${valence}']`)
       : document.querySelector<HTMLElement>(`[data-period='${period}'][data-group='${group}']`);
-
     if (el) {
       const id = el.getAttribute("data-id");
       setHighlightId(id);
@@ -156,9 +159,25 @@ export default function JogoPage() {
 
   const euJogador1 = estado?.id_jogador1 === idJogador;
   const meuElemento = estado ? (euJogador1 ? estado.elemento1 : estado.elemento2) : null;
-  const outroElemento = estado ? (euJogador1 ? estado.elemento2 : estado.elemento1) : null;
-  const outroJogador = estado ? (euJogador1 ? estado.jogador2 : estado.jogador1) : null;
+  const dicasAdversario = estado
+    ? (euJogador1 ? estado.dicas_elemento2?.dica : estado.dicas_elemento1?.dica) ?? []
+    : [];
+  const meuPalpite = estado ? (euJogador1 ? estado.palpite1 : estado.palpite2) : null;
+  const meuAcerto = estado ? (euJogador1 ? estado.acertou1 : estado.acertou2) : null;
+  const outroAcerto = estado ? (euJogador1 ? estado.acertou2 : estado.acertou1) : null;
   const finalizada = estado?.status === "finalizada";
+  const adivinhando = estado?.status === "adivinhando";
+  const minhaVez = adivinhando && estado?.vez_de === idJogador;
+  const tabelaAtiva = !elementoConfirmado || minhaVez;
+
+  // Ação do botão da tabela depende da fase
+  function handleCelulaClick(el: HTMLElement, id: string) {
+    if (estado?.status === "aguardando") return;
+    if (estado?.status === "em_andamento" && elementoConfirmado) return;
+    if (estado?.status === "adivinhando" && !minhaVez) return;
+    if (finalizada) return;
+    alternarSelecao(el, id);
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -169,9 +188,7 @@ export default function JogoPage() {
         >
           Química Naval
         </h1>
-        {mensagem && (
-          <p className="text-blue-100 text-sm mt-1 font-medium">{mensagem}</p>
-        )}
+        {mensagem && <p className="text-blue-100 text-sm mt-1 font-medium">{mensagem}</p>}
         {estado && (
           <p className="text-blue-200 text-xs mt-0.5">
             Sala #{estado.id_jogada} — {estado.jogador1?.nome} vs {estado.jogador2?.nome ?? "aguardando..."}
@@ -179,51 +196,49 @@ export default function JogoPage() {
         )}
       </header>
 
-      {/* Status de fim de jogo */}
-      {finalizada && (
+      {/* Resultado final */}
+      {finalizada && estado && (
         <div className="bg-yellow-50 border-b-4 border-yellow-400 p-6 text-center">
-          <h2 className="text-2xl font-bold mb-4">🏆 Partida Finalizada!</h2>
-          <div className="flex justify-center gap-10 flex-wrap">
-            <div className="bg-white rounded-xl p-4 shadow min-w-[200px]">
-              <p className="font-semibold text-blue-700 mb-1">{estado?.jogador1?.nome}</p>
-              {estado?.elemento1 ? (
-                <>
-                  <p className="text-lg font-bold">{estado.elemento1.nome}</p>
-                  <p className="text-sm text-gray-600">{estado.elemento1.familia}</p>
-                </>
-              ) : <p className="text-gray-400">Não escolheu</p>}
+          <h2 className="text-2xl font-bold mb-2">🏆 Partida Finalizada!</h2>
+          {estado.vencedor === idJogador && <p className="text-green-600 font-bold text-xl mb-3">🎉 Você venceu!</p>}
+          {estado.vencedor !== null && estado.vencedor !== idJogador && <p className="text-red-500 font-bold text-xl mb-3">😔 Você perdeu.</p>}
+          {estado.vencedor === null && <p className="text-gray-600 font-bold text-xl mb-3">🤝 Empate!</p>}
+
+          <div className="flex justify-center gap-8 flex-wrap mb-4">
+            <div className="bg-white rounded-xl p-4 shadow min-w-[180px]">
+              <p className="font-semibold text-blue-700 mb-1">{estado.jogador1?.nome}</p>
+              <p className="text-xs text-gray-500 mb-1">Elemento secreto:</p>
+              <p className="font-bold">{estado.elemento1?.nome}</p>
+              <p className="text-sm text-gray-500">{estado.elemento1?.familia}</p>
+              <p className="mt-2 text-xs text-gray-500">Palpite do adversário:</p>
+              <p className={`font-semibold ${estado.acertou2 ? "text-green-600" : "text-red-500"}`}>
+                {estado.acertou2 ? "✅ Acertou!" : "❌ Errou"}
+              </p>
             </div>
             <div className="flex items-center text-3xl font-bold text-gray-400">VS</div>
-            <div className="bg-white rounded-xl p-4 shadow min-w-[200px]">
-              <p className="font-semibold text-green-700 mb-1">{estado?.jogador2?.nome}</p>
-              {estado?.elemento2 ? (
-                <>
-                  <p className="text-lg font-bold">{estado.elemento2.nome}</p>
-                  <p className="text-sm text-gray-600">{estado.elemento2.familia}</p>
-                </>
-              ) : <p className="text-gray-400">Não escolheu</p>}
+            <div className="bg-white rounded-xl p-4 shadow min-w-[180px]">
+              <p className="font-semibold text-green-700 mb-1">{estado.jogador2?.nome}</p>
+              <p className="text-xs text-gray-500 mb-1">Elemento secreto:</p>
+              <p className="font-bold">{estado.elemento2?.nome}</p>
+              <p className="text-sm text-gray-500">{estado.elemento2?.familia}</p>
+              <p className="mt-2 text-xs text-gray-500">Palpite do adversário:</p>
+              <p className={`font-semibold ${estado.acertou1 ? "text-green-600" : "text-red-500"}`}>
+                {estado.acertou1 ? "✅ Acertou!" : "❌ Errou"}
+              </p>
             </div>
           </div>
-          <button
-            onClick={() => router.push("/sala")}
-            className="mt-6 bg-blue-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-blue-700 transition"
-          >
+          <button onClick={() => router.push("/sala")} className="mt-2 bg-blue-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-blue-700 transition">
             Jogar Novamente
           </button>
         </div>
       )}
 
-      {erro && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 text-center">
-          {erro}
-        </div>
-      )}
+      {erro && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 text-center">{erro}</div>}
 
       {/* Tabela periódica */}
       <div className="overflow-x-auto py-4 px-2">
         <table className="periodic-table" style={{ display: "flex", flexDirection: "row", justifyContent: "center" }}>
           <tbody>
-            {/* Linha 0: cabeçalhos de grupos */}
             <tr>
               <Td/>
               <Td><b className="Family text-center text-xs block">1(s¹)</b></Td>
@@ -243,7 +258,6 @@ export default function JogoPage() {
                   if ('type' in cell && cell.type === "period") return <Td key={ci}><small className="periodNumbers"><sub>{cell.num}</sub></small></Td>;
                   if ('type' in cell) return <Td key={ci}/>;
                   const isHighlight = highlightId === String(cell.id);
-                  const isSelected = selecionadoId === String(cell.id);
                   return (
                     <td
                       key={ci}
@@ -252,11 +266,8 @@ export default function JogoPage() {
                       data-group={cell.group}
                       data-valence={cell.valence}
                       data-id={cell.id}
-                      onClick={(e) => {
-                        if (!elementoConfirmado && estado?.status !== "aguardando")
-                          alternarSelecao(e.currentTarget as HTMLElement, String(cell.id));
-                      }}
-                      style={{ cursor: elementoConfirmado ? "default" : "pointer" }}
+                      onClick={(e) => handleCelulaClick(e.currentTarget as HTMLElement, String(cell.id))}
+                      style={{ cursor: tabelaAtiva && !finalizada ? "pointer" : "default" }}
                     >
                       <span className="text-center block text-xs">{cell.id}</span>
                       <b className="text-center block text-sm">{cell.symbol}</b>
@@ -270,7 +281,7 @@ export default function JogoPage() {
         </table>
       </div>
 
-      {/* Seleção atual */}
+      {/* Barra de ação — muda conforme a fase */}
       {!finalizada && (
         <div className="px-4 pb-2 flex flex-col items-center gap-2">
           <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 w-full max-w-3xl flex items-center justify-between gap-4">
@@ -281,18 +292,28 @@ export default function JogoPage() {
             <div className="flex gap-2">
               <button
                 onClick={limparSelecao}
-                disabled={!selecionadoId || elementoConfirmado}
+                disabled={!selecionadoId}
                 className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Desmarcar
               </button>
-              <button
-                onClick={confirmarSelecao}
-                disabled={!selecionadoId || elementoConfirmado || estado?.status === "aguardando"}
-                className="bg-green-600 text-white px-4 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {elementoConfirmado ? "✅ Confirmado" : "Confirmar Seleção"}
-              </button>
+              {adivinhando ? (
+                <button
+                  onClick={confirmarPalpite}
+                  disabled={!selecionadoId || !minhaVez}
+                  className="bg-purple-600 text-white px-4 py-1 rounded text-sm hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {!minhaVez ? "⏳ Vez do adversário" : "Enviar Palpite"}
+                </button>
+              ) : (
+                <button
+                  onClick={confirmarSelecao}
+                  disabled={!selecionadoId || elementoConfirmado || estado?.status === "aguardando"}
+                  className="bg-green-600 text-white px-4 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {elementoConfirmado ? "✅ Confirmado" : "Confirmar Seleção"}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -300,87 +321,150 @@ export default function JogoPage() {
 
       {/* Painel inferior */}
       <div className="flex flex-col md:flex-row gap-4 p-4 justify-around">
-        {/* Buscar elemento */}
+
+        {/* Busca por distribuição eletrônica */}
         <div className="bg-amber-50 rounded-xl p-4 flex-1 max-w-md shadow">
           <h2 className="text-center font-semibold text-lg mb-3">Informe a Distribuição Eletrônica</h2>
           <div className="flex gap-2 mb-2">
             <div className="flex-1">
-              <input
-                type="text"
-                value={periodInput}
-                onChange={(e) => { setPeriodInput(e.target.value); setValenceInput(""); }}
-                onKeyDown={(e) => e.key === "Enter" && buscarElemento()}
-                className="w-full border rounded px-2 py-1 text-sm"
-                placeholder="Período"
-              />
+              <input type="text" value={periodInput} onChange={(e) => { setPeriodInput(e.target.value); setValenceInput(""); }} onKeyDown={(e) => e.key === "Enter" && buscarElemento()} className="w-full border rounded px-2 py-1 text-sm" placeholder="Período"/>
               <p className="text-center text-xs mt-1 text-gray-600">Período</p>
             </div>
             <div className="flex-1">
-              <input
-                type="text"
-                value={groupInput}
-                onChange={(e) => { setGroupInput(e.target.value); setValenceInput(""); }}
-                onKeyDown={(e) => e.key === "Enter" && buscarElemento()}
-                className="w-full border rounded px-2 py-1 text-sm"
-                placeholder="Família"
-              />
+              <input type="text" value={groupInput} onChange={(e) => { setGroupInput(e.target.value); setValenceInput(""); }} onKeyDown={(e) => e.key === "Enter" && buscarElemento()} className="w-full border rounded px-2 py-1 text-sm" placeholder="Família"/>
               <p className="text-center text-xs mt-1 text-gray-600">Família</p>
             </div>
           </div>
-          <input
-            type="text"
-            value={valenceInput}
-            onChange={(e) => { setValenceInput(e.target.value); setPeriodInput(""); setGroupInput(""); }}
-            onKeyDown={(e) => e.key === "Enter" && buscarElemento()}
-            className="w-full border rounded px-2 py-1 text-sm mb-2"
-            placeholder="Ex: 1s1"
-          />
+          <input type="text" value={valenceInput} onChange={(e) => { setValenceInput(e.target.value); setPeriodInput(""); setGroupInput(""); }} onKeyDown={(e) => e.key === "Enter" && buscarElemento()} className="w-full border rounded px-2 py-1 text-sm mb-2" placeholder="Ex: 1s1"/>
           <p className="text-center text-xs mb-3 text-gray-600">Camada de Valência</p>
-          <button
-            onClick={buscarElemento}
-            className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 text-sm"
-          >
-            Buscar Elemento
-          </button>
+          <button onClick={buscarElemento} className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 text-sm">Buscar Elemento</button>
           {searchErro && <p className="text-red-600 text-xs mt-2">{searchErro}</p>}
         </div>
 
-        {/* Dicas / Estado */}
+        {/* Painel direito: status ou dicas */}
         <div className="bg-amber-50 rounded-xl p-4 flex-1 max-w-lg shadow">
-          <h2 className="text-center font-semibold text-lg mb-3">Status da Partida</h2>
-          <div style={{ background: "rgb(228,209,187)", borderRadius: "7px", padding: "12px", minHeight: "120px" }}>
-            {!estado ? (
-              <p className="text-gray-500 text-sm">Carregando...</p>
-            ) : estado.status === "aguardando" ? (
-              <div className="text-center">
-                <p className="font-semibold text-lg mb-2">🔑 ID da sua sala:</p>
-                <p className="text-4xl font-bold text-blue-700 mb-2">{estado.id_jogada}</p>
-                <p className="text-sm text-gray-600">Compartilhe este ID com o adversário para ele entrar na sala.</p>
-              </div>
-            ) : estado.status === "em_andamento" ? (
-              <div>
-                <div className="flex justify-around text-center">
-                  <div>
-                    <p className="text-xs font-semibold text-blue-700">{estado.jogador1?.nome}</p>
-                    <p className="text-2xl mt-1">{estado.id_elemento1 ? "✅" : "⏳"}</p>
-                    <p className="text-xs text-gray-500">{estado.id_elemento1 ? "Escolheu" : "Escolhendo..."}</p>
+
+          {/* Fase de escolha */}
+          {(estado?.status === "aguardando" || estado?.status === "em_andamento") && (
+            <>
+              <h2 className="text-center font-semibold text-lg mb-3">Status da Partida</h2>
+              <div style={{ background: "rgb(228,209,187)", borderRadius: "7px", padding: "12px", minHeight: "120px" }}>
+                {!estado ? (
+                  <p className="text-gray-500 text-sm">Carregando...</p>
+                ) : estado.status === "aguardando" ? (
+                  <div className="text-center">
+                    <p className="font-semibold text-lg mb-2">🔑 ID da sua sala:</p>
+                    <p className="text-4xl font-bold text-blue-700 mb-2">{estado.id_jogada}</p>
+                    <p className="text-sm text-gray-600">Compartilhe este ID com o adversário para ele entrar na sala.</p>
                   </div>
-                  <div className="flex items-center text-gray-400 font-bold">VS</div>
+                ) : (
                   <div>
-                    <p className="text-xs font-semibold text-green-700">{estado.jogador2?.nome}</p>
-                    <p className="text-2xl mt-1">{estado.id_elemento2 ? "✅" : "⏳"}</p>
-                    <p className="text-xs text-gray-500">{estado.id_elemento2 ? "Escolheu" : "Escolhendo..."}</p>
-                  </div>
-                </div>
-                {meuElemento && (
-                  <div className="mt-3 pt-3 border-t border-amber-300">
-                    <p className="text-xs font-semibold mb-1">Seu elemento escolhido:</p>
-                    <p className="font-bold">{meuElemento.nome} <span className="font-normal text-sm text-gray-600">— {meuElemento.familia}</span></p>
+                    <div className="flex justify-around text-center">
+                      <div>
+                        <p className="text-xs font-semibold text-blue-700">{estado.jogador1?.nome}</p>
+                        <p className="text-2xl mt-1">{estado.id_elemento1 ? "✅" : "⏳"}</p>
+                        <p className="text-xs text-gray-500">{estado.id_elemento1 ? "Escolheu" : "Escolhendo..."}</p>
+                      </div>
+                      <div className="flex items-center text-gray-400 font-bold">VS</div>
+                      <div>
+                        <p className="text-xs font-semibold text-green-700">{estado.jogador2?.nome}</p>
+                        <p className="text-2xl mt-1">{estado.id_elemento2 ? "✅" : "⏳"}</p>
+                        <p className="text-xs text-gray-500">{estado.id_elemento2 ? "Escolheu" : "Escolhendo..."}</p>
+                      </div>
+                    </div>
+                    {meuElemento && (
+                      <div className="mt-3 pt-3 border-t border-amber-300">
+                        <p className="text-xs font-semibold mb-1">Seu elemento secreto:</p>
+                        <p className="font-bold">{meuElemento.nome} <span className="font-normal text-sm text-gray-600">— {meuElemento.familia}</span></p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            ) : null}
-          </div>
+            </>
+          )}
+
+          {/* Fase de adivinhação */}
+          {(adivinhando || finalizada) && (
+            <>
+              <h2 className="text-center font-semibold text-lg mb-3">
+                {adivinhando ? "🔍 Dicas do Elemento Adversário" : "📋 Dicas Reveladas"}
+              </h2>
+              <div style={{ background: "rgb(228,209,187)", borderRadius: "7px", padding: "12px" }}>
+
+                {/* Meu elemento secreto */}
+                {meuElemento && (
+                  <div className="mb-3 pb-3 border-b border-amber-400">
+                    <p className="text-xs font-semibold text-gray-600">Seu elemento secreto:</p>
+                    <p className="font-bold text-blue-700">{meuElemento.nome} — <span className="font-normal text-sm">{meuElemento.familia}</span></p>
+                  </div>
+                )}
+
+                {/* Dicas do adversário reveladas uma a uma */}
+                <p className="text-xs font-semibold text-gray-700 mb-2">
+                  Dicas do elemento adversário ({dicaVisivel + 1}/{Math.max(dicasAdversario.length, 1)}):
+                </p>
+                {dicasAdversario.length > 0 ? (
+                  <>
+                    <div className="space-y-2 mb-3">
+                      {dicasAdversario.slice(0, dicaVisivel + 1).map((d, i) => (
+                        <div key={i} className="bg-white rounded px-3 py-2 text-sm text-gray-700 border border-amber-200">
+                          <span className="font-semibold text-amber-700">#{i + 1}</span> {d.descricao}
+                        </div>
+                      ))}
+                    </div>
+                    {adivinhando && !minhaVez && dicaVisivel < dicasAdversario.length - 1 && (
+                      <button
+                        onClick={() => setDicaVisivel(v => v + 1)}
+                        className="w-full bg-amber-500 text-white py-1.5 rounded text-sm hover:bg-amber-600 mb-2"
+                      >
+                        Ver próxima dica ({dicaVisivel + 2}/{dicasAdversario.length})
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-gray-500 text-sm">Carregando dicas...</p>
+                )}
+
+                {/* Status do palpite */}
+                {adivinhando && (
+                  <div className="mt-3 pt-3 border-t border-amber-400">
+                    <p className="text-xs font-semibold text-center mb-2 text-gray-600">Turno atual:</p>
+                    <div className="flex justify-around text-center">
+                      <div>
+                        <p className="text-xs font-semibold text-blue-700">{estado?.jogador1?.nome}</p>
+                        <p className="text-xl mt-1">{estado?.vez_de === estado?.id_jogador1 ? "🎯" : "⏳"}</p>
+                        <p className="text-xs text-gray-500">{estado?.vez_de === estado?.id_jogador1 ? "Sua vez!" : "Aguardando..."}</p>
+                      </div>
+                      <div className="flex items-center text-gray-400 font-bold text-sm">VS</div>
+                      <div>
+                        <p className="text-xs font-semibold text-green-700">{estado?.jogador2?.nome}</p>
+                        <p className="text-xl mt-1">{estado?.vez_de === estado?.id_jogador2 ? "🎯" : "⏳"}</p>
+                        <p className="text-xs text-gray-500">{estado?.vez_de === estado?.id_jogador2 ? "Sua vez!" : "Aguardando..."}</p>
+                      </div>
+                    </div>
+                    {ultimoPalpite && (
+                      <p className={`text-center text-sm mt-2 font-medium ${ultimoPalpite.acertou ? "text-green-600" : "text-red-500"}`}>
+                        {ultimoPalpite.acertou ? "🎉 Você acertou!" : `❌ Errou. Elemento #${ultimoPalpite.id} não é o certo.`}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Resultado parcial imediato (após finalização) */}
+                {finalizada && (
+                  <div className="mt-3 pt-3 border-t border-amber-400 text-center">
+                    <p className={`font-bold text-lg ${meuAcerto ? "text-green-600" : "text-red-500"}`}>
+                      {meuAcerto ? "✅ Você acertou!" : "❌ Você errou."}
+                    </p>
+                    <p className={`text-sm ${outroAcerto ? "text-red-500" : "text-green-600"}`}>
+                      {outroAcerto ? "O adversário acertou o seu elemento." : "O adversário errou o seu elemento."}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -391,7 +475,6 @@ function Td({ children }: { children?: React.ReactNode }) {
   return <td style={{ width: 60, height: 60 }}>{children}</td>;
 }
 
-// Tabela periódica completa
 const ROWS: Array<Array<null | { type: "label"; text: string } | { type: "period"; num: number } | {
   id: number; symbol: string; name: string; period: number; group: number; valence: string; cls: string;
 }>> = [
@@ -420,16 +503,9 @@ const ROWS: Array<Array<null | { type: "label"; text: string } | { type: "period
     { type:"period", num:3 },
     { id:11, symbol:"Na", name:"Sódio", period:3, group:1, valence:"3s1", cls:"metais-alcalinos tdBorder" },
     { id:12, symbol:"Mg", name:"Magnésio", period:3, group:2, valence:"3s2", cls:"metais-alcalino-terrosos tdBorder" },
-    { type:"label", text:"3(d¹)" },
-    { type:"label", text:"4(d²)" },
-    { type:"label", text:"5(d³)" },
-    { type:"label", text:"6(d⁴)" },
-    { type:"label", text:"7(d⁵)" },
-    { type:"label", text:"8(d⁶)" },
-    { type:"label", text:"9(d⁷)" },
-    { type:"label", text:"10(d⁸)" },
-    { type:"label", text:"11(d⁹)" },
-    { type:"label", text:"12(d¹⁰)" },
+    { type:"label", text:"3(d¹)" },{ type:"label", text:"4(d²)" },{ type:"label", text:"5(d³)" },
+    { type:"label", text:"6(d⁴)" },{ type:"label", text:"7(d⁵)" },{ type:"label", text:"8(d⁶)" },
+    { type:"label", text:"9(d⁷)" },{ type:"label", text:"10(d⁸)" },{ type:"label", text:"11(d⁹)" },{ type:"label", text:"12(d¹⁰)" },
     { id:13, symbol:"Al", name:"Alumínio", period:3, group:13, valence:"3s2 3p1", cls:"outros-metais tdBorder" },
     { id:14, symbol:"Si", name:"Silício", period:3, group:14, valence:"3s2 3p2", cls:"semimetais tdBorder" },
     { id:15, symbol:"P", name:"Fósforo", period:3, group:15, valence:"3s2 3p3", cls:"nao-metais tdBorder" },

@@ -19,10 +19,18 @@ export async function GET(req: NextRequest) {
       id_jogador2,
       id_elemento1,
       id_elemento2,
+      palpite1,
+      palpite2,
+      acertou1,
+      acertou2,
+      vencedor,
+      vez_de,
       jogador1:jogador!jogada_id_jogador1_fkey(nome),
       jogador2:jogador!jogada_id_jogador2_fkey(nome),
       elemento1:elemento!jogada_id_elemento1_fkey(id_elemento, nome, familia),
-      elemento2:elemento!jogada_id_elemento2_fkey(id_elemento, nome, familia)
+      elemento2:elemento!jogada_id_elemento2_fkey(id_elemento, nome, familia),
+      dicas_elemento1:elemento!jogada_id_elemento1_fkey(dica(descricao)),
+      dicas_elemento2:elemento!jogada_id_elemento2_fkey(dica(descricao))
     `)
     .eq('id_jogada', idJogada)
     .single()
