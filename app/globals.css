@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f0f8ff;
+  --foreground: #3e2723;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+.periodic-table td {
+  width: 60px;
+  height: 60px;
+  font-style: italic;
+  color: #3E2723;
+}
+
+.tdBorder {
+  border: 1px solid rgba(0,0,0,0.5);
+  box-shadow: inset 3px 3px 10px rgba(0,0,0,0.3), 2px 2px 8px rgba(0,0,0,0.2);
+  font-style: italic;
+  color: #3E2723;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tdBorder:hover { transform: scale(1.05); }
+
+.nao-metais { background: #B5D6A7; }
+.metais-alcalinos { background: #F9E79F; }
+.metais-alcalino-terrosos { background: #FAD7A0; }
+.semimetais { background: #AED6F1; }
+.halogenios { background: #A3E4D7; }
+.gases-nobres { background: #85C1E9; }
+.outros-metais { background: #D5DBDB; }
+.metais-de-transicao { background: #F5B7B1; }
+.lantanideos { background: #D2B4DE; }
+.actinideos { background: #D7BDE2; }
+
+.destaque { background-color: #ffcc00 !important; border: 2px solid #ff9900 !important; }
+.finalSelection { background-color: rgb(3,197,3) !important; border: 1px solid black; }
+.highlight { background-color: rgb(0,255,0) !important; border: 1px solid black; }
