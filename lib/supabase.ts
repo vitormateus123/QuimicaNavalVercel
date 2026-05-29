@@ -39,22 +39,34 @@ export type Database = {
           vencedor?: number | null
         }
       }
+      elemento: {
+        Row: {
+          id_elemento: number
+          nome: string
+          familia: string
+        }
+        Insert: {
+          nome: string
+          familia: string
+        }
+        Update: {
+          nome?: string
+          familia?: string
+        }
+      }
       dica: {
         Row: {
           id_dica: number
-          elemento: string
-          familia: string
-          descricao_dica: string
+          id_elemento: number
+          descricao: string
         }
         Insert: {
-          elemento: string
-          familia: string
-          descricao_dica: string
+          id_elemento: number
+          descricao: string
         }
         Update: {
-          elemento?: string
-          familia?: string
-          descricao_dica?: string
+          id_elemento?: number
+          descricao?: string
         }
       }
     }

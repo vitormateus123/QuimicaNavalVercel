@@ -21,8 +21,8 @@ export async function GET(req: NextRequest) {
       id_elemento2,
       jogador1:jogador!jogada_id_jogador1_fkey(nome),
       jogador2:jogador!jogada_id_jogador2_fkey(nome),
-      dica1:dica!jogada_id_elemento1_fkey(id_dica, elemento, familia, descricao_dica),
-      dica2:dica!jogada_id_elemento2_fkey(id_dica, elemento, familia, descricao_dica)
+      elemento1:elemento!jogada_id_elemento1_fkey(id_elemento, nome, familia),
+      elemento2:elemento!jogada_id_elemento2_fkey(id_elemento, nome, familia)
     `)
     .eq('id_jogada', idJogada)
     .single()

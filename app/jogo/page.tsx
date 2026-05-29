@@ -17,8 +17,8 @@ interface EstadoPartida {
   id_elemento2: number | null;
   jogador1: { nome: string } | null;
   jogador2: { nome: string } | null;
-  dica1: { id_dica: number; elemento: string; familia: string; descricao_dica: string } | null;
-  dica2: { id_dica: number; elemento: string; familia: string; descricao_dica: string } | null;
+  elemento1: { id_elemento: number; nome: string; familia: string } | null;
+  elemento2: { id_elemento: number; nome: string; familia: string } | null;
 }
 
 export default function JogoPage() {
@@ -155,8 +155,8 @@ export default function JogoPage() {
   }
 
   const euJogador1 = estado?.id_jogador1 === idJogador;
-  const meuElemento = estado ? (euJogador1 ? estado.dica1 : estado.dica2) : null;
-  const outroElemento = estado ? (euJogador1 ? estado.dica2 : estado.dica1) : null;
+  const meuElemento = estado ? (euJogador1 ? estado.elemento1 : estado.elemento2) : null;
+  const outroElemento = estado ? (euJogador1 ? estado.elemento2 : estado.elemento1) : null;
   const outroJogador = estado ? (euJogador1 ? estado.jogador2 : estado.jogador1) : null;
   const finalizada = estado?.status === "finalizada";
 
@@ -186,22 +186,20 @@ export default function JogoPage() {
           <div className="flex justify-center gap-10 flex-wrap">
             <div className="bg-white rounded-xl p-4 shadow min-w-[200px]">
               <p className="font-semibold text-blue-700 mb-1">{estado?.jogador1?.nome}</p>
-              {estado?.dica1 ? (
+              {estado?.elemento1 ? (
                 <>
-                  <p className="text-lg font-bold">{estado.dica1.elemento}</p>
-                  <p className="text-sm text-gray-600">{estado.dica1.familia}</p>
-                  <p className="text-xs text-gray-500 mt-2 italic">{estado.dica1.descricao_dica}</p>
+                  <p className="text-lg font-bold">{estado.elemento1.nome}</p>
+                  <p className="text-sm text-gray-600">{estado.elemento1.familia}</p>
                 </>
               ) : <p className="text-gray-400">Não escolheu</p>}
             </div>
             <div className="flex items-center text-3xl font-bold text-gray-400">VS</div>
             <div className="bg-white rounded-xl p-4 shadow min-w-[200px]">
               <p className="font-semibold text-green-700 mb-1">{estado?.jogador2?.nome}</p>
-              {estado?.dica2 ? (
+              {estado?.elemento2 ? (
                 <>
-                  <p className="text-lg font-bold">{estado.dica2.elemento}</p>
-                  <p className="text-sm text-gray-600">{estado.dica2.familia}</p>
-                  <p className="text-xs text-gray-500 mt-2 italic">{estado.dica2.descricao_dica}</p>
+                  <p className="text-lg font-bold">{estado.elemento2.nome}</p>
+                  <p className="text-sm text-gray-600">{estado.elemento2.familia}</p>
                 </>
               ) : <p className="text-gray-400">Não escolheu</p>}
             </div>
@@ -377,8 +375,7 @@ export default function JogoPage() {
                 {meuElemento && (
                   <div className="mt-3 pt-3 border-t border-amber-300">
                     <p className="text-xs font-semibold mb-1">Seu elemento escolhido:</p>
-                    <p className="font-bold">{meuElemento.elemento} <span className="font-normal text-sm text-gray-600">— {meuElemento.familia}</span></p>
-                    <p className="text-xs text-gray-600 mt-1 italic">{meuElemento.descricao_dica}</p>
+                    <p className="font-bold">{meuElemento.nome} <span className="font-normal text-sm text-gray-600">— {meuElemento.familia}</span></p>
                   </div>
                 )}
               </div>
