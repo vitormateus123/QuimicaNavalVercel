@@ -3,7 +3,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
 export async function POST(req: NextRequest) {
-  const { idJogador, idJogada, idPalpite } = await req.json()
+  const body = await req.json()
+  const idJogador = Number(body.idJogador)
+  const idJogada  = Number(body.idJogada)
+  const idPalpite = Number(body.idPalpite)
 
   if (!idJogador || !idJogada || !idPalpite) {
     return NextResponse.json({ error: 'Dados incompletos' }, { status: 400 })
@@ -36,12 +39,9 @@ export async function POST(req: NextRequest) {
 
   // Cada jogador adivinha o elemento do adversário
   const elementoAlvo = ehJogador1 ? partida.id_elemento2 : partida.id_elemento1
-  const acertou = Number(idPalpite) === Number(elementoAlvo)
+  const acertou = elementoAlvo !== null && idPalpite === elementoAlvo
 
-  const updateData: Record<string, unknown> = {
-    [ehJogador1 ? 'palpite1' : 'palpite2']: idPalpite,
-    [ehJogador1 ? 'acertou1' : 'acertou2']: acertou,
-  }
+  const updateData: Record<string, unknown> = {}
 
   if (acertou) {
     updateData.status = 'finalizada'
@@ -60,5 +60,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: updateError.message }, { status: 500 })
   }
 
-  return NextResponse.json({ success: true, acertou, status: updateData.status ?? 'adivinhando' })
+  return NextResponse.json({
+    success: true,
+    acertou,
+    status: updateData.status ?? 'adivinhando',
+  })
 }

@@ -10,7 +10,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'idJogada é obrigatório' }, { status: 400 })
   }
 
-  const { data, error } = await supabase
+  // 1. Busca a jogada com dados básicos (sem tentar navegar FK reversa para dicas)
+  const { data: partida, error } = await supabase
     .from('jogada')
     .select(`
       id_jogada,
@@ -19,25 +20,44 @@ export async function GET(req: NextRequest) {
       id_jogador2,
       id_elemento1,
       id_elemento2,
-      palpite1,
-      palpite2,
-      acertou1,
-      acertou2,
       vencedor,
       vez_de,
       jogador1:jogador!jogada_id_jogador1_fkey(nome),
       jogador2:jogador!jogada_id_jogador2_fkey(nome),
       elemento1:elemento!jogada_id_elemento1_fkey(id_elemento, nome, familia),
-      elemento2:elemento!jogada_id_elemento2_fkey(id_elemento, nome, familia),
-      dicas_elemento1:elemento!jogada_id_elemento1_fkey(dica(descricao)),
-      dicas_elemento2:elemento!jogada_id_elemento2_fkey(dica(descricao))
+      elemento2:elemento!jogada_id_elemento2_fkey(id_elemento, nome, familia)
     `)
     .eq('id_jogada', idJogada)
     .single()
 
-  if (error || !data) {
+  if (error || !partida) {
     return NextResponse.json({ error: 'Partida não encontrada' }, { status: 404 })
   }
 
-  return NextResponse.json(data)
+  // 2. Busca dicas separadamente via query direta na tabela dica
+  //    (o join reverso elemento→dica não funciona no Supabase PostgREST)
+  let dicasElemento1: { descricao: string }[] = []
+  let dicasElemento2: { descricao: string }[] = []
+
+  if (partida.id_elemento1) {
+    const { data } = await supabase
+      .from('dica')
+      .select('descricao')
+      .eq('id_elemento', partida.id_elemento1)
+    dicasElemento1 = data ?? []
+  }
+
+  if (partida.id_elemento2) {
+    const { data } = await supabase
+      .from('dica')
+      .select('descricao')
+      .eq('id_elemento', partida.id_elemento2)
+    dicasElemento2 = data ?? []
+  }
+
+  return NextResponse.json({
+    ...partida,
+    dicas_elemento1: dicasElemento1,
+    dicas_elemento2: dicasElemento2,
+  })
 }
