@@ -239,6 +239,51 @@ function ModalResultado({
   );
 }
 
+// ── Modal de palpite errado ──────────────────────────────────────────────────
+function ModalErrou({
+  nomeAdversario,
+  onFechar,
+}: {
+  nomeAdversario: string;
+  onFechar: () => void;
+}) {
+  return (
+    <div
+      style={{
+        position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
+        display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100,
+      }}
+    >
+      <div
+        style={{
+          background: "#fff3e0", borderRadius: 14, padding: "32px 36px",
+          minWidth: 320, maxWidth: 400, boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ fontSize: 56, marginBottom: 8 }}>❌</div>
+        <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 8, color: "#c62828" }}>
+          Palpite Errado!
+        </h2>
+        <p style={{ color: "#555", marginBottom: 20, lineHeight: 1.5 }}>
+          Não foi dessa vez...<br />
+          Agora é a vez de <strong>{nomeAdversario}</strong> adivinhar.
+        </p>
+        <button
+          onClick={onFechar}
+          style={{
+            background: "#ef6c00", color: "#fff", border: "none",
+            borderRadius: 8, padding: "10px 28px", cursor: "pointer",
+            fontWeight: 700, fontSize: 15,
+          }}
+        >
+          Entendido
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function JogoPage() {
   const router = useRouter();
 
@@ -251,7 +296,9 @@ export default function JogoPage() {
   const [modalConfirmar, setModalConfirmar] = useState(false);
   const [modalPalpite, setModalPalpite] = useState(false);
   const [modalResultado, setModalResultado] = useState(false);
+  const [modalErrou, setModalErrou] = useState<{ nomeAdversario: string } | null>(null);
   const resultadoMostradoRef = useRef(false);
+  const vezAnteriorRef = useRef<number | null>(null);
 
   // Busca por distribuição eletrônica
   const [periodInput, setPeriodInput] = useState("");
@@ -289,6 +336,22 @@ export default function JogoPage() {
       if (!res.ok) return;
       const data: EstadoPartida = await res.json();
       setEstado(data);
+
+      // Detectar palpite errado: estava na minha vez, agora é do adversário
+      const idJogadorAtual = typeof window !== "undefined"
+        ? Number(sessionStorage.getItem("idJogador") ?? "0") : 0;
+      if (
+        data.status === "adivinhando" &&
+        vezAnteriorRef.current === idJogadorAtual &&
+        data.vez_de !== idJogadorAtual
+      ) {
+        const nomeAdv = data.id_jogador1 === idJogadorAtual
+          ? (data.jogador2?.nome ?? "Adversário")
+          : (data.jogador1?.nome ?? "Adversário");
+        setModalErrou({ nomeAdversario: nomeAdv });
+      }
+      vezAnteriorRef.current = data.vez_de;
+
       // Mostrar modal de resultado quando finalizar (apenas uma vez)
       if (data.status === "finalizada" && !resultadoMostradoRef.current) {
         resultadoMostradoRef.current = true;
@@ -332,18 +395,24 @@ export default function JogoPage() {
   const jaEscolheu  = meuElementoId !== null && meuElementoId !== undefined;
   const minhaVez    = adivinhando && estado?.vez_de === idJogador;
 
-  // Tabela não é mais usada para seleção — apenas para visualização/highlight
-  const tabelaAtiva = false;
+  // Tabela clicável apenas na fase de escolha do elemento secreto (em_andamento)
+  // Na fase de adivinhação, a seleção é exclusivamente pela distribuição eletrônica
+  const tabelaAtiva = emAndamento && !jaEscolheu;
+
+  function handleCelulaClick(id: number) {
+    if (!tabelaAtiva) return;
+    setSelecionadoId(prev => (prev === id ? null : id));
+  }
 
   // Mensagem de status (uma linha, nunca cresce)
   let mensagem = "";
   if (estado?.status === "aguardando") {
     mensagem = "⏳ Aguardando segundo jogador entrar na sala...";
   } else if (emAndamento) {
-    if (!jaEscolheu) mensagem = "🎯 Digite a distribuição eletrônica e confirme seu elemento secreto!";
-    else mensagem = "⏳ Aguardando o adversário escolher o elemento...";
+    if (!jaEscolheu) mensagem = "🎯 Clique em um elemento na tabela ou use a busca para escolher seu elemento secreto!";
+    else mensagem = "⏳ Elemento escolhido! Aguardando o adversário...";
   } else if (adivinhando) {
-    if (minhaVez) mensagem = "🔍 É sua vez! Busque e confirme seu palpite abaixo.";
+    if (minhaVez) mensagem = "🔍 Sua vez! Use a distribuição eletrônica para adivinhar o elemento do adversário.";
     else mensagem = "⏳ Vez do adversário adivinhar...";
   }
 
@@ -461,6 +530,12 @@ export default function JogoPage() {
           onConfirmar={confirmarPalpite}
           onCancelar={() => setModalPalpite(false)}
           enviando={enviando}
+        />
+      )}
+      {modalErrou && (
+        <ModalErrou
+          nomeAdversario={modalErrou.nomeAdversario}
+          onFechar={() => setModalErrou(null)}
         />
       )}
       {modalResultado && estado && finalizada && (
@@ -582,7 +657,8 @@ export default function JogoPage() {
                       data-group={cell.group}
                       data-valence={cell.valence}
                       data-id={cell.id}
-                      style={{ cursor: "default" }}
+                      onClick={() => handleCelulaClick(cell.id)}
+                      style={{ cursor: tabelaAtiva ? "pointer" : "default" }}
                     >
                       <span className="text-center block text-xs">{cell.id}</span>
                       <b className="text-center block text-sm">{cell.symbol}</b>
@@ -652,8 +728,15 @@ export default function JogoPage() {
         {/* Busca por distribuição eletrônica — seleciona o elemento */}
         <div className="bg-amber-50 rounded-xl p-4 flex-1 max-w-md shadow">
           <h2 className="text-center font-semibold text-lg mb-3">
-            Informe a Distribuição Eletrônica
+            {emAndamento && !jaEscolheu
+              ? "🔒 Escolha seu Elemento Secreto"
+              : "🔍 Adivinhe pela Distribuição Eletrônica"}
           </h2>
+          {emAndamento && !jaEscolheu && (
+            <p className="text-xs text-center text-gray-500 mb-3 -mt-1">
+              Use a busca <em>ou</em> clique diretamente na tabela acima
+            </p>
+          )}
           <div className="flex gap-2 mb-2">
             <div className="flex-1">
               <input
@@ -691,7 +774,7 @@ export default function JogoPage() {
             onClick={buscarElemento}
             className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 text-sm"
           >
-            Buscar e Selecionar Elemento
+            {emAndamento && !jaEscolheu ? "Buscar e Selecionar Elemento" : "Buscar Elemento para Palpite"}
           </button>
           {searchErro && (
             <p className="text-red-600 text-xs mt-2" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
