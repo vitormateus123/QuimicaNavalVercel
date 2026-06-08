@@ -2,194 +2,152 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-interface SalaAberta {
-  id_jogada: number;
-  id_jogador1: number;
-  jogador1: { nome: string } | null;
-  status: string;
-}
-
-export default function SalaPage() {
+export default function LoginPage() {
   const router = useRouter();
-  const [nomeJogador, setNomeJogador] = useState("");
-  const [salas, setSalas] = useState<SalaAberta[]>([]);
-  const [idSalaManual, setIdSalaManual] = useState("");
+  const [nome, setNome] = useState("");
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
 
   useEffect(() => {
-    const nome = sessionStorage.getItem("nomeJogador");
+    // Se já tem sessão ativa, pula direto para a sala
+    const nomeJogador = sessionStorage.getItem("nomeJogador");
     const idJogador = sessionStorage.getItem("idJogador");
-    if (!nome || !idJogador) {
-      router.push("/");
-      return;
+    if (nomeJogador && idJogador) {
+      router.push("/sala");
     }
-    setNomeJogador(nome);
-    carregarSalas();
-    const interval = setInterval(carregarSalas, 5000);
-    return () => clearInterval(interval);
   }, [router]);
 
-  async function carregarSalas() {
-    const res = await fetch("/api/partida");
-    if (res.ok) {
-      const data = await res.json();
-      setSalas(data);
-    }
-  }
-
-  async function criarSala() {
-    setLoading(true);
-    setErro("");
-    const idJogador = sessionStorage.getItem("idJogador");
-
-    const res = await fetch("/api/partida", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idJogador: Number(idJogador) }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setErro(data.error);
-      setLoading(false);
-      return;
-    }
-    sessionStorage.setItem("idJogada", data.id_jogada);
-    router.push("/jogo");
-  }
-
-  async function entrarSala(idJogada: number) {
-    setLoading(true);
-    setErro("");
-    const idJogador = sessionStorage.getItem("idJogador");
-
-    const res = await fetch("/api/partida/entrar", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idJogador: Number(idJogador), idJogada }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setErro(data.error);
-      setLoading(false);
-      return;
-    }
-    sessionStorage.setItem("idJogada", idJogada.toString());
-    router.push("/jogo");
-  }
-
-  async function entrarSalaManual(e: React.FormEvent) {
+  async function entrar(e: React.FormEvent) {
     e.preventDefault();
-    if (!idSalaManual) return;
-    await entrarSala(Number(idSalaManual));
+    if (!nome.trim()) return;
+    setLoading(true);
+    setErro("");
+    try {
+      const res = await fetch("/api/jogador", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome: nome.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErro(data.error ?? "Erro ao entrar");
+        setLoading(false);
+        return;
+      }
+      sessionStorage.setItem("nomeJogador", data.nome);
+      sessionStorage.setItem("idJogador", String(data.id_jogador));
+      router.push("/sala");
+    } catch {
+      setErro("Erro de conexão. Tente novamente.");
+      setLoading(false);
+    }
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="py-4 text-center shadow-sm" style={{ background: "rgba(25,118,210,0.92)" }}>
-        <h1
-          className="m-0 text-white"
-          style={{ fontFamily: "'Kolker Brush', serif", fontSize: "clamp(40px,8vw,100px)", textShadow: "0 3px 3px white" }}
-        >
-          Química Naval
-        </h1>
-      </header>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #0369a1 100%)",
+        padding: 20,
+      }}
+    >
+      {/* Título */}
+      <h1
+        style={{
+          fontFamily: "'Kolker Brush', serif",
+          fontSize: "clamp(56px, 10vw, 120px)",
+          color: "#fff",
+          margin: "0 0 8px",
+          textShadow: "0 4px 8px rgba(0,0,0,0.4)",
+          lineHeight: 1,
+          textAlign: "center",
+        }}
+      >
+        Química Naval
+      </h1>
+      <p style={{ color: "#93c5fd", fontSize: 16, margin: "0 0 40px", textAlign: "center" }}>
+        Descubra o elemento secreto do adversário!
+      </p>
 
-      <div className="container mx-auto max-w-2xl p-6">
-        <h2 className="text-2xl font-bold text-center mb-6 text-white drop-shadow">
-          Bem-vindo, {nomeJogador}!
+      {/* Card de login */}
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 20,
+          padding: "36px 40px",
+          width: "100%",
+          maxWidth: 420,
+          boxShadow: "0 25px 50px rgba(0,0,0,0.35)",
+        }}
+      >
+        <h2 style={{ margin: "0 0 24px", fontSize: 20, fontWeight: 800, color: "#1e3a8a", textAlign: "center" }}>
+          ⚗️ Entrar no Jogo
         </h2>
 
-        {erro && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {erro}
-          </div>
-        )}
-
-        {/* Criar sala */}
-        <div className="bg-white bg-opacity-90 rounded-xl shadow p-6 mb-6">
-          <h3 className="text-lg font-semibold mb-3">🚢 Nova Partida</h3>
-          <button
-            onClick={criarSala}
-            disabled={loading}
-            className="w-full bg-green-600 text-white py-3 rounded-lg text-lg font-medium hover:bg-green-700 transition disabled:opacity-50"
-          >
-            {loading ? "Criando..." : "Criar Sala"}
-          </button>
-        </div>
-
-        {/* Entrar por ID */}
-        <div className="bg-white bg-opacity-90 rounded-xl shadow p-6 mb-6">
-          <h3 className="text-lg font-semibold mb-3">🔢 Entrar por ID da Sala</h3>
-          <form onSubmit={entrarSalaManual} className="flex gap-3">
+        <form onSubmit={entrar} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
+              Seu nome de jogador
+            </label>
             <input
-              type="number"
-              value={idSalaManual}
-              onChange={(e) => setIdSalaManual(e.target.value)}
-              placeholder="ID da sala"
-              className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              type="text"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              placeholder="Ex: Marie Curie"
+              maxLength={30}
+              autoFocus
+              style={{
+                width: "100%",
+                border: "2px solid #d1d5db",
+                borderRadius: 10,
+                padding: "12px 14px",
+                fontSize: 15,
+                outline: "none",
+                transition: "border-color 0.2s",
+                boxSizing: "border-box",
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "#1d4ed8")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "#d1d5db")}
             />
-            <button
-              type="submit"
-              disabled={loading || !idSalaManual}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              Entrar
-            </button>
-          </form>
-        </div>
-
-        {/* Salas abertas */}
-        <div className="bg-white bg-opacity-90 rounded-xl shadow p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">🎮 Salas Abertas</h3>
-            <button
-              onClick={carregarSalas}
-              className="text-sm text-blue-600 hover:underline"
-            >
-              Atualizar
-            </button>
           </div>
-          {salas.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">Nenhuma sala aberta no momento.</p>
-          ) : (
-            <ul className="divide-y">
-              {salas.map((sala) => {
-                const minhaSala = sala.id_jogador1 === Number(sessionStorage.getItem("idJogador"));
-                return (
-                  <li key={sala.id_jogada} className="py-3 flex items-center justify-between">
-                    <div>
-                      <span className="font-medium">Sala #{sala.id_jogada}</span>
-                      <span className="text-gray-500 ml-2">
-                        — {sala.jogador1?.nome ?? "Desconhecido"}
-                      </span>
-                    </div>
-                    {minhaSala ? (
-                      <button
-                        onClick={() => {
-                          sessionStorage.setItem("idJogada", sala.id_jogada.toString());
-                          router.push("/jogo");
-                        }}
-                        className="text-sm bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-                      >
-                        Retornar
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => entrarSala(sala.id_jogada)}
-                        disabled={loading}
-                        className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50"
-                      >
-                        Entrar
-                      </button>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+
+          {erro && (
+            <div style={{
+              background: "#fee2e2", border: "1px solid #fca5a5",
+              borderRadius: 8, padding: "10px 14px", color: "#991b1b", fontSize: 13,
+            }}>
+              {erro}
+            </div>
           )}
-        </div>
+
+          <button
+            type="submit"
+            disabled={loading || !nome.trim()}
+            style={{
+              background: loading || !nome.trim() ? "#e5e7eb" : "linear-gradient(135deg, #1d4ed8, #1e40af)",
+              color: loading || !nome.trim() ? "#9ca3af" : "#fff",
+              border: "none",
+              borderRadius: 10,
+              padding: "13px 0",
+              fontSize: 15,
+              fontWeight: 700,
+              cursor: loading || !nome.trim() ? "not-allowed" : "pointer",
+              transition: "all 0.2s",
+              marginTop: 4,
+            }}
+          >
+            {loading ? "Entrando..." : "🚀 Jogar Agora"}
+          </button>
+        </form>
       </div>
+
+      <p style={{ color: "#93c5fd", fontSize: 12, marginTop: 24, textAlign: "center" }}>
+        Jogo educativo de química · Tabela Periódica
+      </p>
     </div>
   );
 }
