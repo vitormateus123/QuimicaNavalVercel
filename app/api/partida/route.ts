@@ -2,46 +2,62 @@ export const dynamic = "force-dynamic"
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
-// POST: criar partida
-export async function POST(req: NextRequest) {
-  const { idJogador } = await req.json()
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
+  const idJogada = searchParams.get('idJogada')
 
-  if (!idJogador) {
-    return NextResponse.json({ error: 'idJogador é obrigatório' }, { status: 400 })
+  if (!idJogada) {
+    return NextResponse.json({ error: 'idJogada é obrigatório' }, { status: 400 })
   }
 
-  const { data, error } = await supabase
-    .from('jogada')
-    .insert({
-      id_jogador1: idJogador,
-      status: 'aguardando',
-    })
-    .select('id_jogada, status')
-    .single()
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-
-  return NextResponse.json(data)
-}
-
-// GET: listar partidas abertas
-export async function GET() {
-  const { data, error } = await supabase
+  // 1. Busca a jogada com dados básicos (sem tentar navegar FK reversa para dicas)
+  const { data: partida, error } = await supabase
     .from('jogada')
     .select(`
       id_jogada,
       status,
       id_jogador1,
-      jogador1:jogador!jogada_id_jogador1_fkey(nome)
+      id_jogador2,
+      id_elemento1,
+      id_elemento2,
+      vencedor,
+      vez_de,
+      jogador1:jogador!jogada_id_jogador1_fkey(nome),
+      jogador2:jogador!jogada_id_jogador2_fkey(nome),
+      elemento1:elemento!jogada_id_elemento1_fkey(id_elemento, nome, familia),
+      elemento2:elemento!jogada_id_elemento2_fkey(id_elemento, nome, familia)
     `)
-    .eq('status', 'aguardando')
-    .order('id_jogada', { ascending: false })
+    .eq('id_jogada', idJogada)
+    .single()
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error || !partida) {
+    return NextResponse.json({ error: 'Partida não encontrada' }, { status: 404 })
   }
 
-  return NextResponse.json(data)
+  // 2. Busca dicas separadamente via query direta na tabela dica
+  //    (o join reverso elemento→dica não funciona no Supabase PostgREST)
+  let dicasElemento1: { descricao: string }[] = []
+  let dicasElemento2: { descricao: string }[] = []
+
+  if (partida.id_elemento1) {
+    const { data } = await supabase
+      .from('dica')
+      .select('descricao')
+      .eq('id_elemento', partida.id_elemento1)
+    dicasElemento1 = data ?? []
+  }
+
+  if (partida.id_elemento2) {
+    const { data } = await supabase
+      .from('dica')
+      .select('descricao')
+      .eq('id_elemento', partida.id_elemento2)
+    dicasElemento2 = data ?? []
+  }
+
+  return NextResponse.json({
+    ...partida,
+    dicas_elemento1: dicasElemento1,
+    dicas_elemento2: dicasElemento2,
+  })
 }
