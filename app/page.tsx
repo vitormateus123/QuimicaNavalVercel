@@ -34,46 +34,59 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="py-4 text-center shadow-sm" style={{ background: "rgba(25,118,210,0.92)" }}>
-        <h1
-          className="m-0 text-white"
-          style={{ fontFamily: "'Kolker Brush', serif", fontSize: "clamp(60px,10vw,130px)", textShadow: "0 3px 3px white" }}
-        >
-          Química Naval
-        </h1>
+      {/* Header */}
+      <header className="site-header py-5 text-center sticky top-0 z-20">
+        <h1 className="site-title m-0 leading-none">Química Naval</h1>
+        <p className="header-subtitle mt-1 tracking-widest">Batalha de Elementos</p>
       </header>
 
-      <div className="flex flex-1 items-center justify-center p-4">
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white bg-opacity-90 p-8 rounded-xl shadow-lg w-full max-w-sm"
-        >
-          <fieldset>
-            <legend className="text-center text-xl font-semibold mb-6">Bem-vindo</legend>
-            <div className="mb-4">
-              <label htmlFor="nome" className="block text-sm font-medium mb-1">
-                Digite seu nome:
+      {/* Login form */}
+      <div className="flex flex-1 items-center justify-center p-6">
+        <div className="login-card">
+          {/* Icon */}
+          <div className="text-center mb-6">
+            <span style={{ fontSize: 48, filter: "drop-shadow(0 0 12px rgba(0,229,255,0.6))" }}>⚗️</span>
+            <h2 style={{ fontFamily: "'Exo 2', sans-serif", fontWeight: 700, fontSize: "1.3rem", color: "var(--biolum)", marginTop: 10, letterSpacing: "0.06em" }}>
+              IDENTIFICAÇÃO
+            </h2>
+            <p className="text-dim" style={{ fontSize: "0.8rem", marginTop: 4 }}>Entre com seu nome de comandante</p>
+          </div>
+
+          <div className="divider" />
+
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: 16 }}>
+              <label htmlFor="nome" style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "rgba(0,229,255,0.8)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>
+                Código do Comandante
               </label>
               <input
                 type="text"
                 id="nome"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="input-field"
+                placeholder="Digite seu nome..."
                 required
                 autoFocus
               />
             </div>
-            {erro && <p className="text-red-600 text-sm mb-3">{erro}</p>}
+
+            {erro && (
+              <p style={{ color: "var(--danger)", fontSize: "0.8rem", marginBottom: 12, padding: "6px 10px", background: "rgba(255,82,82,0.1)", borderRadius: 6, border: "1px solid rgba(255,82,82,0.25)" }}>
+                ⚠ {erro}
+              </p>
+            )}
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
+              className="btn btn-primary"
+              style={{ width: "100%", padding: "12px 0", fontSize: "0.95rem", marginTop: 4 }}
             >
-              {loading ? "Entrando..." : "Entrar"}
+              {loading ? "⏳ Entrando..." : "🚢 Iniciar Missão"}
             </button>
-          </fieldset>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
