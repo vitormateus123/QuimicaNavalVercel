@@ -114,10 +114,12 @@ function ModalResultado({
   estado,
   idJogador,
   onJogarNovamente,
+  onSair, // NOVO
 }: {
   estado: EstadoPartida;
   idJogador: number;
   onJogarNovamente: () => void;
+  onSair: () => void; // NOVO
 }) {
   const venceu = estado.vencedor === idJogador;
   const empate = estado.vencedor === null;
@@ -168,6 +170,16 @@ function ModalResultado({
         </div>
         <button onClick={onJogarNovamente} className="btn btn-primary" style={{ padding: "12px 32px", fontSize: 16 }}>
           🔄 Jogar Novamente
+        </button>
+        <button
+          onClick={onSair}
+          style={{
+            background: "#e0e0e0", color: "#333", border: "none",
+            borderRadius: 10, padding: "12px 32px", fontSize: 16,
+            cursor: "pointer", fontWeight: 700, marginTop: 10,
+          }}
+        >
+          Sair
         </button>
       </div>
     </div>
@@ -466,6 +478,10 @@ export default function JogoPage() {
           estado={estado}
           idJogador={idJogador}
           onJogarNovamente={() => { setModalResultado(false); router.push("/sala"); }}
+          onSair={() => { // NOVO
+            sessionStorage.clear();
+            router.push("/");
+          }}
         />
       )}
 
