@@ -40,26 +40,45 @@ function ModalConfirmar({
   return (
     <div
       style={{
-        position: "fixed", inset: 0, background: "rgba(0,5,18,0.8)",
-        backdropFilter: "blur(6px)",
+        position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)",
         display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100,
       }}
     >
-      <div className="modal-card">
-        <div style={{ fontSize: 48, marginBottom: 8, filter: "drop-shadow(0 0 12px rgba(0,229,255,0.5))" }}>🔒</div>
-        <h2 style={{ fontWeight: 700, fontSize: 20, marginBottom: 8, color: "var(--biolum)", fontFamily: "'Exo 2',sans-serif" }}>
+      <div
+        style={{
+          background: "#fffde7", borderRadius: 14, padding: "32px 36px",
+          minWidth: 320, maxWidth: 400, boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ fontSize: 48, marginBottom: 8 }}>🔒</div>
+        <h2 style={{ fontWeight: 700, fontSize: 20, marginBottom: 8 }}>
           Confirmar Elemento Secreto
         </h2>
-        <p style={{ color: "rgba(180,210,255,0.7)", marginBottom: 16, lineHeight: 1.6 }}>
-          Você escolheu <strong style={{ color: "var(--gold)" }}>{nomeElemento}</strong> como seu elemento secreto.
+        <p style={{ color: "#555", marginBottom: 16 }}>
+          Você escolheu <strong>{nomeElemento}</strong> como seu elemento secreto.
           <br />Essa escolha não pode ser desfeita!
         </p>
         <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-          <button onClick={onCancelar} className="btn" style={{ background: "rgba(255,255,255,0.08)", color: "rgba(200,220,255,0.8)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, padding: "10px 22px", cursor: "pointer", fontWeight: 600 }}>
+          <button
+            onClick={onCancelar}
+            style={{
+              background: "#e0e0e0", color: "#333", border: "none",
+              borderRadius: 8, padding: "10px 22px", cursor: "pointer", fontWeight: 600,
+            }}
+          >
             Cancelar
           </button>
-          <button onClick={onConfirmar} disabled={enviando} className="btn btn-success" style={{ padding: "10px 22px", opacity: enviando ? 0.6 : 1 }}>
-            {enviando ? "Confirmando..." : "✅ Confirmar!"}
+          <button
+            onClick={onConfirmar}
+            disabled={enviando}
+            style={{
+              background: "#43a047", color: "#fff", border: "none",
+              borderRadius: 8, padding: "10px 22px", cursor: "pointer", fontWeight: 700,
+              opacity: enviando ? 0.6 : 1,
+            }}
+          >
+            {enviando ? "Confirmando..." : "Confirmar!"}
           </button>
         </div>
       </div>
@@ -82,26 +101,45 @@ function ModalPalpite({
   return (
     <div
       style={{
-        position: "fixed", inset: 0, background: "rgba(0,5,18,0.8)",
-        backdropFilter: "blur(6px)",
+        position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)",
         display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100,
       }}
     >
-      <div className="modal-card">
-        <div style={{ fontSize: 48, marginBottom: 8, filter: "drop-shadow(0 0 12px rgba(180,80,255,0.6))" }}>🔍</div>
-        <h2 style={{ fontWeight: 700, fontSize: 20, marginBottom: 8, color: "#c084fc", fontFamily: "'Exo 2',sans-serif" }}>
+      <div
+        style={{
+          background: "#f3e5f5", borderRadius: 14, padding: "32px 36px",
+          minWidth: 320, maxWidth: 400, boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ fontSize: 48, marginBottom: 8 }}>🔍</div>
+        <h2 style={{ fontWeight: 700, fontSize: 20, marginBottom: 8 }}>
           Enviar Palpite
         </h2>
-        <p style={{ color: "rgba(180,210,255,0.7)", marginBottom: 16, lineHeight: 1.6 }}>
-          Seu palpite é <strong style={{ color: "var(--gold)" }}>{nomeElemento}</strong>.
+        <p style={{ color: "#555", marginBottom: 16 }}>
+          Seu palpite é <strong>{nomeElemento}</strong>.
           <br />Tem certeza que deseja enviar?
         </p>
         <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-          <button onClick={onCancelar} className="btn" style={{ background: "rgba(255,255,255,0.08)", color: "rgba(200,220,255,0.8)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, padding: "10px 22px", cursor: "pointer", fontWeight: 600 }}>
+          <button
+            onClick={onCancelar}
+            style={{
+              background: "#e0e0e0", color: "#333", border: "none",
+              borderRadius: 8, padding: "10px 22px", cursor: "pointer", fontWeight: 600,
+            }}
+          >
             Cancelar
           </button>
-          <button onClick={onConfirmar} disabled={enviando} className="btn btn-purple" style={{ padding: "10px 22px", opacity: enviando ? 0.6 : 1 }}>
-            {enviando ? "Enviando..." : "🎯 Enviar Palpite!"}
+          <button
+            onClick={onConfirmar}
+            disabled={enviando}
+            style={{
+              background: "#7b1fa2", color: "#fff", border: "none",
+              borderRadius: 8, padding: "10px 22px", cursor: "pointer", fontWeight: 700,
+              opacity: enviando ? 0.6 : 1,
+            }}
+          >
+            {enviando ? "Enviando..." : "Enviar Palpite!"}
           </button>
         </div>
       </div>
@@ -127,19 +165,24 @@ function ModalResultado({
   return (
     <div
       style={{
-        position: "fixed", inset: 0, background: "rgba(0,5,18,0.8)",
-        backdropFilter: "blur(6px)",
+        position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)",
         display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100,
       }}
     >
-      <div className="modal-card" style={{ minWidth: 340, maxWidth: 460 }}>
+      <div
+        style={{
+          background: "#fffde7", borderRadius: 16, padding: "36px 40px",
+          minWidth: 340, maxWidth: 460, boxShadow: "0 8px 40px rgba(0,0,0,0.4)",
+          textAlign: "center",
+        }}
+      >
         <div style={{ fontSize: 64, marginBottom: 8 }}>
           {empate ? "🤝" : venceu ? "🏆" : "😔"}
         </div>
-        <h2 style={{ fontWeight: 800, fontSize: 26, marginBottom: 4, fontFamily: "'Exo 2',sans-serif", color: empate ? "var(--warning)" : venceu ? "var(--success)" : "var(--danger)" }}>
+        <h2 style={{ fontWeight: 800, fontSize: 26, marginBottom: 4 }}>
           {empate ? "Empate!" : venceu ? "Você Venceu!" : "Você Perdeu"}
         </h2>
-        <p style={{ color: "rgba(180,210,255,0.5)", marginBottom: 20, fontSize: 14 }}>
+        <p style={{ color: "#777", marginBottom: 20, fontSize: 14 }}>
           Partida finalizada
         </p>
         <div
@@ -148,28 +191,50 @@ function ModalResultado({
             marginBottom: 24, flexWrap: "wrap",
           }}
         >
-          <div className="player-card" style={{ minWidth: 130 }}>
-            <p style={{ fontWeight: 700, color: "var(--biolum)", marginBottom: 4, fontSize: 13, fontFamily: "'Exo 2',sans-serif" }}>
+          <div
+            style={{
+              background: "#fff", borderRadius: 10, padding: "12px 20px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.12)", minWidth: 130,
+            }}
+          >
+            <p style={{ fontWeight: 700, color: "#1565c0", marginBottom: 4, fontSize: 13 }}>
               {estado.jogador1?.nome}
             </p>
-            <p style={{ fontSize: 11, color: "rgba(180,210,255,0.5)", marginBottom: 2 }}>Elemento secreto:</p>
-            <p style={{ fontWeight: 700, fontSize: 15, color: "var(--gold)" }}>{estado.elemento1?.nome}</p>
-            <p style={{ fontSize: 12, color: "rgba(180,210,255,0.4)" }}>{estado.elemento1?.familia}</p>
+            <p style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Elemento secreto:</p>
+            <p style={{ fontWeight: 700, fontSize: 15 }}>{estado.elemento1?.nome}</p>
+            <p style={{ fontSize: 12, color: "#666" }}>{estado.elemento1?.familia}</p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", fontSize: 22, fontWeight: 700, color: "rgba(0,229,255,0.4)", fontFamily: "'Orbitron',monospace" }}>
+          <div
+            style={{
+              display: "flex", alignItems: "center",
+              fontSize: 22, fontWeight: 700, color: "#bbb",
+            }}
+          >
             VS
           </div>
-          <div className="player-card" style={{ minWidth: 130 }}>
-            <p style={{ fontWeight: 700, color: "var(--success)", marginBottom: 4, fontSize: 13, fontFamily: "'Exo 2',sans-serif" }}>
+          <div
+            style={{
+              background: "#fff", borderRadius: 10, padding: "12px 20px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.12)", minWidth: 130,
+            }}
+          >
+            <p style={{ fontWeight: 700, color: "#2e7d32", marginBottom: 4, fontSize: 13 }}>
               {estado.jogador2?.nome}
             </p>
-            <p style={{ fontSize: 11, color: "rgba(180,210,255,0.5)", marginBottom: 2 }}>Elemento secreto:</p>
-            <p style={{ fontWeight: 700, fontSize: 15, color: "var(--gold)" }}>{estado.elemento2?.nome}</p>
-            <p style={{ fontSize: 12, color: "rgba(180,210,255,0.4)" }}>{estado.elemento2?.familia}</p>
+            <p style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>Elemento secreto:</p>
+            <p style={{ fontWeight: 700, fontSize: 15 }}>{estado.elemento2?.nome}</p>
+            <p style={{ fontSize: 12, color: "#666" }}>{estado.elemento2?.familia}</p>
           </div>
         </div>
-        <button onClick={onJogarNovamente} className="btn btn-primary" style={{ padding: "12px 32px", fontSize: 16 }}>
-          🔄 Jogar Novamente
+        <button
+          onClick={onJogarNovamente}
+          style={{
+            background: "#1976d2", color: "#fff", border: "none",
+            borderRadius: 10, padding: "12px 32px", fontSize: 16,
+            cursor: "pointer", fontWeight: 700,
+          }}
+        >
+          Jogar Novamente
         </button>
         <button
           onClick={onSair}
@@ -197,21 +262,33 @@ function ModalErrou({
   return (
     <div
       style={{
-        position: "fixed", inset: 0, background: "rgba(0,5,18,0.8)",
-        backdropFilter: "blur(6px)",
+        position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
         display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100,
       }}
     >
-      <div className="modal-card">
-        <div style={{ fontSize: 56, marginBottom: 8, filter: "drop-shadow(0 0 12px rgba(255,82,82,0.6))" }}>💥</div>
-        <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 8, color: "var(--danger)", fontFamily: "'Exo 2',sans-serif" }}>
+      <div
+        style={{
+          background: "#fff3e0", borderRadius: 14, padding: "32px 36px",
+          minWidth: 320, maxWidth: 400, boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ fontSize: 56, marginBottom: 8 }}>❌</div>
+        <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 8, color: "#c62828" }}>
           Palpite Errado!
         </h2>
-        <p style={{ color: "rgba(180,210,255,0.7)", marginBottom: 20, lineHeight: 1.6 }}>
+        <p style={{ color: "#555", marginBottom: 20, lineHeight: 1.5 }}>
           Não foi dessa vez...<br />
-          Agora é a vez de <strong style={{ color: "var(--biolum)" }}>{nomeAdversario}</strong> adivinhar.
+          Agora é a vez de <strong>{nomeAdversario}</strong> adivinhar.
         </p>
-        <button onClick={onFechar} className="btn btn-danger" style={{ padding: "10px 28px", fontSize: 15 }}>
+        <button
+          onClick={onFechar}
+          style={{
+            background: "#ef6c00", color: "#fff", border: "none",
+            borderRadius: 8, padding: "10px 28px", cursor: "pointer",
+            fontWeight: 700, fontSize: 15,
+          }}
+        >
           Entendido
         </button>
       </div>
@@ -486,26 +563,39 @@ export default function JogoPage() {
       )}
 
       {/* ── Header ── */}
-      <header className="site-header py-3 text-center sticky top-0 z-20">
-        <h1 className="site-title m-0 leading-none" style={{ fontSize: "clamp(30px,5vw,68px)" }}>
+      <header
+        className="py-3 text-center shadow-sm sticky top-0 z-20"
+        style={{ background: "rgba(25,118,210,0.95)" }}
+      >
+        <h1
+          className="m-0 text-white leading-none"
+          style={{
+            fontFamily: "'Kolker Brush', serif",
+            fontSize: "clamp(40px,6vw,90px)",
+            textShadow: "0 3px 3px white",
+          }}
+        >
           Química Naval
         </h1>
         {mensagem && (
-          <p className="header-subtitle mt-1" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", padding: "0 16px", fontSize: "0.72rem" }}>
+          <p
+            className="text-blue-100 text-sm mt-1 font-medium"
+            style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", padding: "0 16px" }}
+          >
             {mensagem}
           </p>
         )}
         {estado && (
-          <p className="text-muted" style={{ fontSize: "0.7rem", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            <span style={{ fontFamily: "'Orbitron',monospace", color: "var(--biolum)" }}>#{estado.id_jogada}</span>{" "}
-            — {estado.jogador1?.nome} vs {estado.jogador2?.nome ?? "aguardando..."}
+          <p className="text-blue-200 text-xs mt-0.5" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            Sala #{estado.id_jogada} — {estado.jogador1?.nome} vs{" "}
+            {estado.jogador2?.nome ?? "aguardando..."}
           </p>
         )}
       </header>
 
       {erro && (
-        <div className="error-banner" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-          ⚠ {erro}
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 text-center" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {erro}
         </div>
       )}
 
@@ -603,38 +693,44 @@ export default function JogoPage() {
       {/* ── Barra de ação ── */}
       {!finalizada && (
         <div className="px-4 pb-2 flex flex-col items-center gap-2">
-          <div className="action-bar w-full max-w-3xl flex items-center justify-between gap-4">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 w-full max-w-3xl flex items-center justify-between gap-4">
             <div style={{ overflow: "hidden" }}>
-              <span style={{ fontWeight: 600, fontSize: "0.8rem", color: "rgba(180,210,255,0.6)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Selecionado: </span>
+              <span className="font-semibold text-sm">Selecionado: </span>
               <span
-                style={{ fontSize: "0.85rem", color: "var(--gold)", fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "inline-block", maxWidth: 200, verticalAlign: "bottom" }}
+                className="text-sm"
+                style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "inline-block", maxWidth: 200, verticalAlign: "bottom" }}
               >
                 {selecionadoId
                   ? ELEMENTO_NOME[selecionadoId] ?? `Elemento #${selecionadoId}`
-                  : "—"}
+                  : "Nenhum"}
               </span>
             </div>
-            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-              <button onClick={limparSelecao} disabled={!selecionadoId} className="btn btn-danger" style={{ padding: "5px 12px", fontSize: "0.8rem", whiteSpace: "nowrap" }}>
-                ✕ Limpar
+            <div className="flex gap-2" style={{ flexShrink: 0 }}>
+              <button
+                onClick={limparSelecao}
+                disabled={!selecionadoId}
+                className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ whiteSpace: "nowrap" }}
+              >
+                Limpar
               </button>
               {adivinhando ? (
                 <button
                   onClick={() => { if (selecionadoId && minhaVez) setModalPalpite(true); }}
                   disabled={!selecionadoId || !minhaVez || enviando}
-                  className="btn btn-purple"
-                  style={{ padding: "5px 14px", fontSize: "0.8rem", whiteSpace: "nowrap" }}
+                  className="bg-purple-600 text-white px-4 py-1 rounded text-sm hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ whiteSpace: "nowrap" }}
                 >
-                  {!minhaVez ? "⏳ Vez do adversário" : "🎯 Enviar Palpite"}
+                  {!minhaVez ? "⏳ Vez do adversário" : "Enviar Palpite"}
                 </button>
               ) : (
                 <button
                   onClick={() => { if (selecionadoId && !jaEscolheu && emAndamento) setModalConfirmar(true); }}
                   disabled={!selecionadoId || jaEscolheu || !emAndamento || enviando}
-                  className="btn btn-success"
-                  style={{ padding: "5px 14px", fontSize: "0.8rem", whiteSpace: "nowrap" }}
+                  className="bg-green-600 text-white px-4 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ whiteSpace: "nowrap" }}
                 >
-                  {jaEscolheu ? "✅ Confirmado" : "🔒 Confirmar Seleção"}
+                  {jaEscolheu ? "✅ Elemento Confirmado" : "Confirmar Seleção"}
                 </button>
               )}
             </div>
@@ -646,89 +742,120 @@ export default function JogoPage() {
       <div className="flex flex-col md:flex-row gap-4 p-4 justify-around">
 
         {/* Busca por distribuição eletrônica — seleciona o elemento */}
-        <div className="glass-card p-4 flex-1 max-w-md">
-          <h2 className="section-title" style={{ justifyContent: "center", fontSize: "0.85rem" }}>
-            {emAndamento && !jaEscolheu ? "🔒 Escolha seu Elemento Secreto" : "🔍 Distribuição Eletrônica"}
+        <div className="bg-amber-50 rounded-xl p-4 flex-1 max-w-md shadow">
+          <h2 className="text-center font-semibold text-lg mb-3">
+            {emAndamento && !jaEscolheu
+              ? "🔒 Escolha seu Elemento Secreto"
+              : "🔍 Adivinhe pela Distribuição Eletrônica"}
           </h2>
           {emAndamento && !jaEscolheu && (
-            <p style={{ fontSize: "0.75rem", textAlign: "center", color: "rgba(180,210,255,0.4)", marginBottom: 12, marginTop: -8 }}>
-              Use a busca <em>ou</em> clique na tabela acima
+            <p className="text-xs text-center text-gray-500 mb-3 -mt-1">
+              Use a busca <em>ou</em> clique diretamente na tabela acima
             </p>
           )}
-          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-            <div style={{ flex: 1 }}>
-              <input type="text" value={periodInput} onChange={(e) => { setPeriodInput(e.target.value); setValenceInput(""); }} onKeyDown={(e) => e.key === "Enter" && buscarElemento()} className="input-field" placeholder="Período" style={{ marginBottom: 4 }} />
-              <p style={{ textAlign: "center", fontSize: "0.7rem", color: "rgba(180,210,255,0.4)" }}>Período</p>
+          <div className="flex gap-2 mb-2">
+            <div className="flex-1">
+              <input
+                type="text"
+                value={periodInput}
+                onChange={(e) => { setPeriodInput(e.target.value); setValenceInput(""); }}
+                onKeyDown={(e) => e.key === "Enter" && buscarElemento()}
+                className="w-full border rounded px-2 py-1 text-sm"
+                placeholder="Período"
+              />
+              <p className="text-center text-xs mt-1 text-gray-600">Período</p>
             </div>
-            <div style={{ flex: 1 }}>
-              <input type="text" value={groupInput} onChange={(e) => { setGroupInput(e.target.value); setValenceInput(""); }} onKeyDown={(e) => e.key === "Enter" && buscarElemento()} className="input-field" placeholder="Família" style={{ marginBottom: 4 }} />
-              <p style={{ textAlign: "center", fontSize: "0.7rem", color: "rgba(180,210,255,0.4)" }}>Família</p>
+            <div className="flex-1">
+              <input
+                type="text"
+                value={groupInput}
+                onChange={(e) => { setGroupInput(e.target.value); setValenceInput(""); }}
+                onKeyDown={(e) => e.key === "Enter" && buscarElemento()}
+                className="w-full border rounded px-2 py-1 text-sm"
+                placeholder="Família"
+              />
+              <p className="text-center text-xs mt-1 text-gray-600">Família</p>
             </div>
           </div>
-          <input type="text" value={valenceInput} onChange={(e) => { setValenceInput(e.target.value); setPeriodInput(""); setGroupInput(""); }} onKeyDown={(e) => e.key === "Enter" && buscarElemento()} className="input-field" placeholder="Ex: 1s1" style={{ marginBottom: 4 }} />
-          <p style={{ textAlign: "center", fontSize: "0.7rem", marginBottom: 12, color: "rgba(180,210,255,0.4)" }}>Camada de Valência</p>
-          <button onClick={buscarElemento} className="btn btn-success" style={{ width: "100%", padding: "8px 0", fontSize: "0.85rem" }}>
-            {emAndamento && !jaEscolheu ? "🔎 Buscar e Selecionar" : "🔎 Buscar para Palpite"}
+          <input
+            type="text"
+            value={valenceInput}
+            onChange={(e) => { setValenceInput(e.target.value); setPeriodInput(""); setGroupInput(""); }}
+            onKeyDown={(e) => e.key === "Enter" && buscarElemento()}
+            className="w-full border rounded px-2 py-1 text-sm mb-2"
+            placeholder="Ex: 1s1"
+          />
+          <p className="text-center text-xs mb-3 text-gray-600">Camada de Valência</p>
+          <button
+            onClick={buscarElemento}
+            className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 text-sm"
+          >
+            {emAndamento && !jaEscolheu ? "Buscar e Selecionar Elemento" : "Buscar Elemento para Palpite"}
           </button>
           {searchErro && (
-            <p style={{ color: "var(--danger)", fontSize: "0.75rem", marginTop: 8, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              ⚠ {searchErro}
+            <p className="text-red-600 text-xs mt-2" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {searchErro}
             </p>
           )}
           {selecionadoId && (
-            <p style={{ color: "var(--success)", fontSize: "0.75rem", marginTop: 6, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <p className="text-green-700 text-xs mt-2 font-semibold" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               ✅ Selecionado: {ELEMENTO_NOME[selecionadoId] ?? `#${selecionadoId}`}
             </p>
           )}
         </div>
 
         {/* Painel direito: status / dicas paginadas */}
-        <div className="glass-card p-4 flex-1 max-w-lg">
+        <div className="bg-amber-50 rounded-xl p-4 flex-1 max-w-lg shadow">
 
           {/* Fase de escolha */}
           {(estado?.status === "aguardando" || emAndamento) && (
             <>
-              <h2 className="section-title" style={{ justifyContent: "center", fontSize: "0.85rem" }}>
-                ⚓ Status da Partida
+              <h2 className="text-center font-semibold text-lg mb-3">
+                Status da Partida
               </h2>
               <div
-                className="info-box" style={{ minHeight: "120px" }}
+                style={{
+                  background: "rgb(228,209,187)",
+                  borderRadius: "7px",
+                  padding: "12px",
+                  minHeight: "120px",
+                }}
               >
                 {!estado ? (
-                  <p style={{ color: "rgba(180,210,255,0.35)", fontSize: "0.85rem" }}>⏳ Carregando...</p>
+                  <p className="text-gray-500 text-sm">Carregando...</p>
                 ) : estado.status === "aguardando" ? (
                   <div className="text-center">
-                    <p style={{ fontWeight: 700, fontSize: "0.95rem", color: "rgba(0,229,255,0.7)", marginBottom: 8, letterSpacing: "0.05em" }}>🔑 Código da Sala</p>
-                    <p className="room-id-display mb-2">{estado.id_jogada}</p>
-                    <p style={{ fontSize: "0.8rem", color: "rgba(180,210,255,0.4)" }}>
-                      Compartilhe com o adversário para ele entrar na sala.
+                    <p className="font-semibold text-lg mb-2">🔑 ID da sua sala:</p>
+                    <p className="text-4xl font-bold text-blue-700 mb-2">{estado.id_jogada}</p>
+                    <p className="text-sm text-gray-600">
+                      Compartilhe este ID com o adversário para ele entrar na sala.
                     </p>
                   </div>
                 ) : (
                   <div>
                     <div className="flex justify-around text-center">
                       <div>
-                        <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--biolum)", whiteSpace: "nowrap" }}>
+                        <p className="text-xs font-semibold text-blue-700" style={{ whiteSpace: "nowrap" }}>
                           {estado.jogador1?.nome}
                         </p>
                         <p className="text-2xl mt-1">{estado.id_elemento1 ? "✅" : "⏳"}</p>
-                        <p style={{ fontSize: "0.7rem", color: "rgba(180,210,255,0.4)" }}>{estado.id_elemento1 ? "✅ Pronto" : "⏳ Escolhendo..."}</p>
+                        <p className="text-xs text-gray-500">{estado.id_elemento1 ? "Escolheu" : "Escolhendo..."}</p>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", color: "rgba(0,229,255,0.35)", fontWeight: 700, fontFamily: "'Orbitron',monospace", fontSize: "0.85rem" }}>VS</div>
+                      <div className="flex items-center text-gray-400 font-bold">VS</div>
                       <div>
-                        <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--success)", whiteSpace: "nowrap" }}>
+                        <p className="text-xs font-semibold text-green-700" style={{ whiteSpace: "nowrap" }}>
                           {estado.jogador2?.nome}
                         </p>
                         <p className="text-2xl mt-1">{estado.id_elemento2 ? "✅" : "⏳"}</p>
-                        <p style={{ fontSize: "0.7rem", color: "rgba(180,210,255,0.4)" }}>{estado.id_elemento2 ? "✅ Pronto" : "⏳ Escolhendo..."}</p>
+                        <p className="text-xs text-gray-500">{estado.id_elemento2 ? "Escolheu" : "Escolhendo..."}</p>
                       </div>
                     </div>
                     {meuElemento && (
-                      <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(0,229,255,0.15)" }}>
-                        <p style={{ fontSize: "0.7rem", fontWeight: 700, color: "rgba(180,210,255,0.5)", marginBottom: 4, letterSpacing: "0.06em", textTransform: "uppercase" }}>Seu elemento secreto:</p>
-                        <p style={{ fontWeight: 700, color: "var(--gold)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <div className="mt-3 pt-3 border-t border-amber-300">
+                        <p className="text-xs font-semibold mb-1">Seu elemento secreto:</p>
+                        <p className="font-bold" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                           {meuElemento.nome}{" "}
-                          <span style={{ fontWeight: 400, fontSize: "0.8rem", color: "rgba(180,210,255,0.5)" }}>— {meuElemento.familia}</span>
+                          <span className="font-normal text-sm text-gray-600">— {meuElemento.familia}</span>
                         </p>
                       </div>
                     )}
@@ -741,19 +868,26 @@ export default function JogoPage() {
           {/* Fase de adivinhação — dicas paginadas (sem crescer) */}
           {(adivinhando || finalizada) && (
             <>
-              <h2 className="section-title" style={{ justifyContent: "center", fontSize: "0.85rem" }}>
+              <h2 className="text-center font-semibold text-lg mb-3">
                 {adivinhando ? "🔍 Dicas do Elemento Adversário" : "📋 Resultado"}
               </h2>
               <div
-                className="info-box"
+                style={{
+                  background: "rgb(228,209,187)",
+                  borderRadius: "7px",
+                  padding: "12px",
+                }}
               >
                 {/* Meu elemento secreto */}
                 {meuElemento && (
-                  <div style={{ marginBottom: 12, paddingBottom: 12, borderBottom: "1px solid rgba(0,229,255,0.15)" }}>
-                    <p style={{ fontSize: "0.7rem", fontWeight: 700, color: "rgba(180,210,255,0.4)", marginBottom: 4, letterSpacing: "0.06em", textTransform: "uppercase" }}>Seu elemento secreto:</p>
-                    <p style={{ fontWeight: 700, color: "var(--gold)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <div className="mb-3 pb-3 border-b border-amber-400">
+                    <p className="text-xs font-semibold text-gray-600">Seu elemento secreto:</p>
+                    <p
+                      className="font-bold text-blue-700"
+                      style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                    >
                       {meuElemento.nome} —{" "}
-                      <span style={{ fontWeight: 400, fontSize: "0.8rem", color: "rgba(180,210,255,0.45)" }}>{meuElemento.familia}</span>
+                      <span className="font-normal text-sm">{meuElemento.familia}</span>
                     </p>
                   </div>
                 )}
@@ -762,62 +896,106 @@ export default function JogoPage() {
                 {dicasAdversario.length > 0 ? (
                   <div>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                      <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "rgba(0,229,255,0.6)", letterSpacing: "0.06em" }}>
-                        DICA {dicaVisivel + 1}/{dicasAdversario.length}
+                      <p className="text-xs font-semibold text-gray-700">
+                        Dica {dicaVisivel + 1} de {dicasAdversario.length}
                       </p>
                       <div style={{ display: "flex", gap: 4 }}>
-                        <button onClick={() => setDicaVisivel(v => Math.max(0, v - 1))} disabled={dicaVisivel === 0} className="nav-arrow">‹</button>
-                        <button onClick={() => setDicaVisivel(v => Math.min(dicasAdversario.length - 1, v + 1))} disabled={dicaVisivel === dicasAdversario.length - 1} className="nav-arrow">›</button>
+                        <button
+                          onClick={() => setDicaVisivel(v => Math.max(0, v - 1))}
+                          disabled={dicaVisivel === 0}
+                          style={{
+                            background: dicaVisivel === 0 ? "#ddd" : "#f59e0b",
+                            color: dicaVisivel === 0 ? "#aaa" : "#fff",
+                            border: "none", borderRadius: 6, padding: "2px 10px",
+                            cursor: dicaVisivel === 0 ? "not-allowed" : "pointer",
+                            fontSize: 14, fontWeight: 700,
+                          }}
+                        >
+                          ‹
+                        </button>
+                        <button
+                          onClick={() => setDicaVisivel(v => Math.min(dicasAdversario.length - 1, v + 1))}
+                          disabled={dicaVisivel === dicasAdversario.length - 1}
+                          style={{
+                            background: dicaVisivel === dicasAdversario.length - 1 ? "#ddd" : "#f59e0b",
+                            color: dicaVisivel === dicasAdversario.length - 1 ? "#aaa" : "#fff",
+                            border: "none", borderRadius: 6, padding: "2px 10px",
+                            cursor: dicaVisivel === dicasAdversario.length - 1 ? "not-allowed" : "pointer",
+                            fontSize: 14, fontWeight: 700,
+                          }}
+                        >
+                          ›
+                        </button>
                       </div>
                     </div>
                     {/* Caixa de dica com altura fixa — nunca cresce */}
-                    <div className="hint-box">
-                      <p className="hint-text" style={{ margin: 0, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" as const }}>
-                        <span style={{ fontWeight: 700, color: "var(--gold)" }}>#{dicaVisivel + 1} </span>
+                    <div
+                      style={{
+                        background: "#fff",
+                        borderRadius: 8,
+                        padding: "10px 14px",
+                        border: "1px solid #fbbf24",
+                        minHeight: 64,
+                        maxHeight: 80,
+                        overflow: "hidden",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <p className="text-sm text-gray-700" style={{ margin: 0, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" as const }}>
+                        <span className="font-semibold text-amber-700">#{dicaVisivel + 1} </span>
                         {dicasAdversario[dicaVisivel]?.descricao}
                       </p>
                     </div>
                     {/* Indicadores de página */}
                     <div style={{ display: "flex", justifyContent: "center", gap: 4, marginTop: 8 }}>
                       {dicasAdversario.map((_, i) => (
-                        <button key={i} onClick={() => setDicaVisivel(i)} className={`pag-dot ${i === dicaVisivel ? "pag-dot-active" : "pag-dot-inactive"}`} />
+                        <button
+                          key={i}
+                          onClick={() => setDicaVisivel(i)}
+                          style={{
+                            width: 8, height: 8, borderRadius: "50%", border: "none",
+                            background: i === dicaVisivel ? "#f59e0b" : "#d1d5db",
+                            cursor: "pointer", padding: 0,
+                          }}
+                        />
                       ))}
                     </div>
                   </div>
                 ) : (
-                  <p style={{ color: "rgba(180,210,255,0.35)", fontSize: "0.85rem" }}>
-                    {adivinhando ? "⏳ Carregando dicas..." : "Nenhuma dica cadastrada."}
+                  <p className="text-gray-500 text-sm">
+                    {adivinhando ? "Carregando dicas..." : "Nenhuma dica cadastrada."}
                   </p>
                 )}
 
                 {/* Turno atual */}
                 {adivinhando && (
-                  <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(0,229,255,0.15)" }}>
-                    <p style={{ fontSize: "0.7rem", fontWeight: 700, textAlign: "center", marginBottom: 8, color: "rgba(0,229,255,0.5)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                      Turno atual
+                  <div className="mt-3 pt-3 border-t border-amber-400">
+                    <p className="text-xs font-semibold text-center mb-2 text-gray-600">
+                      Turno atual:
                     </p>
                     <div className="flex justify-around text-center">
                       <div>
-                        <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--biolum)", whiteSpace: "nowrap" }}>
+                        <p className="text-xs font-semibold text-blue-700" style={{ whiteSpace: "nowrap" }}>
                           {estado?.jogador1?.nome}
                         </p>
                         <p className="text-xl mt-1">
                           {estado?.vez_de === estado?.id_jogador1 ? "🎯" : "⏳"}
                         </p>
-                        <p style={{ fontSize: "0.7rem", color: "rgba(180,210,255,0.4)" }}>
-                          {estado?.vez_de === estado?.id_jogador1 ? "🎯 Vez dele!" : "⏳"}
+                        <p className="text-xs text-gray-500">
+                          {estado?.vez_de === estado?.id_jogador1 ? "Vez dele!" : "Aguardando..."}
                         </p>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", color: "rgba(0,229,255,0.3)", fontWeight: 700, fontFamily: "'Orbitron',monospace", fontSize: "0.75rem" }}>VS</div>
+                      <div className="flex items-center text-gray-400 font-bold text-sm">VS</div>
                       <div>
-                        <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--success)", whiteSpace: "nowrap" }}>
+                        <p className="text-xs font-semibold text-green-700" style={{ whiteSpace: "nowrap" }}>
                           {estado?.jogador2?.nome}
                         </p>
                         <p className="text-xl mt-1">
                           {estado?.vez_de === estado?.id_jogador2 ? "🎯" : "⏳"}
                         </p>
-                        <p style={{ fontSize: "0.7rem", color: "rgba(180,210,255,0.4)" }}>
-                          {estado?.vez_de === estado?.id_jogador2 ? "🎯 Vez dele!" : "⏳"}
+                        <p className="text-xs text-gray-500">
+                          {estado?.vez_de === estado?.id_jogador2 ? "Vez dele!" : "Aguardando..."}
                         </p>
                       </div>
                     </div>
@@ -828,7 +1006,10 @@ export default function JogoPage() {
                 {finalizada && (
                   <div className="mt-3 pt-3 border-t border-amber-400 text-center">
                     <p
-                      style={{ fontWeight: 700, fontSize: "1rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: estado?.vencedor === idJogador ? "var(--success)" : "var(--danger)" }}
+                      className={`font-bold text-lg ${
+                        estado?.vencedor === idJogador ? "text-green-600" : "text-red-500"
+                      }`}
+                      style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
                     >
                       {estado?.vencedor === idJogador
                         ? "✅ Você acertou e venceu!"
