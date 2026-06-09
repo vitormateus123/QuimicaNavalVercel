@@ -635,7 +635,7 @@ export default function JogoPage() {
             {emAndamento && !jaEscolheu ? "🔒 Escolha seu Elemento Secreto" : "🔍 Distribuição Eletrônica"}
           </h2>
           {emAndamento && !jaEscolheu && (
-            <p style={{ fontSize: "0.75rem", textAlign: "center", color: "var(--text-muted)", marginBottom: 12, marginTop: -8, color: "rgba(180,210,255,0.4)" }}>
+            <p style={{ fontSize: "0.75rem", textAlign: "center", color: "rgba(180,210,255,0.4)", marginBottom: 12, marginTop: -8 }}>
               Use a busca <em>ou</em> clique na tabela acima
             </p>
           )}
