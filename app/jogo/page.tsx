@@ -152,12 +152,12 @@ function ModalResultado({
   estado,
   idJogador,
   onJogarNovamente,
-  onSair, // NOVO
+  onSair,
 }: {
   estado: EstadoPartida;
   idJogador: number;
   onJogarNovamente: () => void;
-  onSair: () => void; // NOVO
+  onSair: () => void;
 }) {
   const venceu = estado.vencedor === idJogador;
   const empate = estado.vencedor === null;

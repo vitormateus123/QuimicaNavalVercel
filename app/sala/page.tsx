@@ -42,6 +42,7 @@ export default function SalaPage() {
     setLoading(true);
     setErro("");
     const idJogador = sessionStorage.getItem("idJogador");
+
     const res = await fetch("/api/partida", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -61,6 +62,7 @@ export default function SalaPage() {
     setLoading(true);
     setErro("");
     const idJogador = sessionStorage.getItem("idJogador");
+
     const res = await fetch("/api/partida/entrar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -84,57 +86,53 @@ export default function SalaPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="site-header py-4 text-center sticky top-0 z-20">
-        <h1 className="site-title m-0 leading-none" style={{ fontSize: "clamp(32px,6vw,72px)" }}>
+      <header className="py-4 text-center shadow-sm" style={{ background: "rgba(25,118,210,0.92)" }}>
+        <h1
+          className="m-0 text-white"
+          style={{ fontFamily: "'Kolker Brush', serif", fontSize: "clamp(40px,8vw,100px)", textShadow: "0 3px 3px white" }}
+        >
           Química Naval
         </h1>
-        <p className="header-subtitle mt-1">Seleção de Batalha</p>
       </header>
 
       <div className="container mx-auto max-w-2xl p-6">
-        {/* Welcome */}
-        <div className="text-center mb-6">
-          <h2 style={{ fontFamily: "'Exo 2',sans-serif", fontWeight: 300, fontSize: "1.1rem", color: "rgba(200,230,255,0.7)" }}>
-            Bem-vindo,{" "}
-            <span style={{ fontWeight: 700, color: "var(--biolum)" }}>{nomeJogador}</span>
-          </h2>
-        </div>
+        <h2 className="text-2xl font-bold text-center mb-6 text-white drop-shadow">
+          Bem-vindo, {nomeJogador}!
+        </h2>
 
         {erro && (
-          <div className="error-banner rounded-lg mb-4">⚠ {erro}</div>
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {erro}
+          </div>
         )}
 
         {/* Criar sala */}
-        <div className="glass-card p-6 mb-4">
-          <h3 className="section-title">🚢 Nova Batalha</h3>
+        <div className="bg-white bg-opacity-90 rounded-xl shadow p-6 mb-6">
+          <h3 className="text-lg font-semibold mb-3">🚢 Nova Partida</h3>
           <button
             onClick={criarSala}
             disabled={loading}
-            className="btn btn-success"
-            style={{ width: "100%", padding: "13px 0", fontSize: "1rem" }}
+            className="w-full bg-green-600 text-white py-3 rounded-lg text-lg font-medium hover:bg-green-700 transition disabled:opacity-50"
           >
-            {loading ? "⏳ Criando..." : "⚓ Criar Sala"}
+            {loading ? "Criando..." : "Criar Sala"}
           </button>
         </div>
 
         {/* Entrar por ID */}
-        <div className="glass-card p-6 mb-4">
-          <h3 className="section-title">🔢 Entrar por Código da Sala</h3>
-          <form onSubmit={entrarSalaManual} style={{ display: "flex", gap: 10 }}>
+        <div className="bg-white bg-opacity-90 rounded-xl shadow p-6 mb-6">
+          <h3 className="text-lg font-semibold mb-3">🔢 Entrar por ID da Sala</h3>
+          <form onSubmit={entrarSalaManual} className="flex gap-3">
             <input
               type="number"
               value={idSalaManual}
               onChange={(e) => setIdSalaManual(e.target.value)}
-              placeholder="Código da sala..."
-              className="input-field"
-              style={{ flex: 1 }}
+              placeholder="ID da sala"
+              className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
             <button
               type="submit"
               disabled={loading || !idSalaManual}
-              className="btn btn-primary"
-              style={{ padding: "8px 20px", whiteSpace: "nowrap" }}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
             >
               Entrar
             </button>
@@ -142,33 +140,27 @@ export default function SalaPage() {
         </div>
 
         {/* Salas abertas */}
-        <div className="glass-card p-6">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <h3 className="section-title" style={{ marginBottom: 0 }}>🎮 Salas Abertas</h3>
+        <div className="bg-white bg-opacity-90 rounded-xl shadow p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">🎮 Salas Abertas</h3>
             <button
               onClick={carregarSalas}
-              style={{ background: "none", border: "none", color: "var(--biolum)", fontSize: "0.8rem", cursor: "pointer", fontFamily: "'Exo 2',sans-serif", fontWeight: 600, letterSpacing: "0.05em" }}
+              className="text-sm text-blue-600 hover:underline"
             >
-              ↻ Atualizar
+              Atualizar
             </button>
           </div>
-
           {salas.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "24px 0", color: "rgba(180,210,255,0.4)", fontSize: "0.9rem" }}>
-              <div style={{ fontSize: 32, marginBottom: 8 }}>🌊</div>
-              Nenhuma sala disponível no momento.
-            </div>
+            <p className="text-gray-500 text-center py-4">Nenhuma sala aberta no momento.</p>
           ) : (
-            <ul style={{ listStyle: "none" }}>
+            <ul className="divide-y">
               {salas.map((sala) => {
                 const minhaSala = sala.id_jogador1 === Number(sessionStorage.getItem("idJogador"));
                 return (
-                  <li key={sala.id_jogada} className="sala-item">
+                  <li key={sala.id_jogada} className="py-3 flex items-center justify-between">
                     <div>
-                      <span style={{ fontFamily: "'Orbitron',monospace", fontWeight: 700, color: "var(--biolum)", fontSize: "0.85rem" }}>
-                        #{sala.id_jogada}
-                      </span>
-                      <span className="text-dim" style={{ marginLeft: 8, fontSize: "0.85rem" }}>
+                      <span className="font-medium">Sala #{sala.id_jogada}</span>
+                      <span className="text-gray-500 ml-2">
                         — {sala.jogador1?.nome ?? "Desconhecido"}
                       </span>
                     </div>
@@ -178,8 +170,7 @@ export default function SalaPage() {
                           sessionStorage.setItem("idJogada", sala.id_jogada.toString());
                           router.push("/jogo");
                         }}
-                        className="btn btn-gold"
-                        style={{ padding: "5px 14px", fontSize: "0.8rem" }}
+                        className="text-sm bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
                       >
                         Retornar
                       </button>
@@ -187,8 +178,7 @@ export default function SalaPage() {
                       <button
                         onClick={() => entrarSala(sala.id_jogada)}
                         disabled={loading}
-                        className="btn btn-primary"
-                        style={{ padding: "5px 14px", fontSize: "0.8rem" }}
+                        className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50"
                       >
                         Entrar
                       </button>
